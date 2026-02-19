@@ -1,0 +1,1373 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>نظام الكاشير - سوبر ماركت</title>
+    <!-- إضافة مكتبة مسح الباركود -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      header {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo h1 {
+        color: #667eea;
+        font-size: 28px;
+      }
+
+      .user-info {
+        text-align: left;
+      }
+
+      .user-info div {
+        margin: 5px 0;
+      }
+
+      .user-name {
+        font-weight: bold;
+        color: #333;
+        font-size: 18px;
+      }
+
+      .user-role {
+        color: #667eea;
+        font-size: 14px;
+      }
+
+      .logout-btn {
+        padding: 8px 16px;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+      }
+
+      .search-section {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .search-box {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      input {
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        flex: 1;
+      }
+
+      button {
+        padding: 12px 25px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background: #5568d3;
+      }
+
+      button.danger {
+        background: #e74c3c;
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      button.success {
+        background: #27ae60;
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+        margin-top: 20px;
+      }
+
+      button.warning {
+        background: #f39c12;
+      }
+
+      button.secondary {
+        background: #95a5a6;
+      }
+
+      button.info {
+        background: #3498db;
+      }
+
+      .cart {
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .cart-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .cart-total {
+        font-size: 28px;
+        font-weight: bold;
+        text-align: center;
+        margin: 20px 0;
+        color: #667eea;
+      }
+
+      .discount-section {
+        margin: 15px 0;
+        padding: 10px;
+        background: #f9f9f9;
+        border-radius: 8px;
+      }
+
+      .payment-methods {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 20px 0;
+      }
+
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .product-card {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        text-align: center;
+        background: #f9f9f9;
+      }
+
+      .product-card:hover {
+        transform: scale(1.05);
+        border-color: #667eea;
+        background: #fff;
+      }
+
+      .product-name {
+        font-weight: bold;
+        margin-bottom: 5px;
+        font-size: 14px;
+      }
+
+      .product-price {
+        color: #e74c3c;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .product-quantity {
+        color: #666;
+        font-size: 12px;
+        margin-top: 5px;
+      }
+
+      .message {
+        padding: 12px;
+        margin: 10px 0;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .success-message {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .error-message {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .info-message {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+
+      .nav-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .nav-btn {
+        flex: 1;
+        padding: 12px;
+        font-size: 16px;
+      }
+
+      .invoice-print {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-top: 20px;
+        display: none;
+      }
+
+      .print-header {
+        text-align: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 10px;
+      }
+
+      .print-items {
+        margin: 20px 0;
+      }
+
+      .print-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px dashed #ddd;
+      }
+
+      .print-total {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        margin: 20px 0;
+        color: #667eea;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #667eea;
+      }
+
+      .close-modal {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #555;
+        font-weight: 500;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      /* نافذة الكاميرا */
+      #barcodeScannerModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+
+      #barcodeScannerContainer {
+        width: 90%;
+        max-width: 640px;
+        position: relative;
+      }
+
+      #barcodeScannerVideo {
+        width: 100%;
+        border: 3px solid #667eea;
+        border-radius: 10px;
+        background: black;
+      }
+
+      .scanner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 3px solid rgba(102, 126, 234, 0.8);
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+      }
+
+      .scanner-line {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: rgba(102, 126, 234, 0.8);
+        animation: scan 2s infinite linear;
+      }
+
+      @keyframes scan {
+        0% {
+          top: 0;
+        }
+        100% {
+          top: 100%;
+        }
+      }
+
+      .scanner-controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 15px;
+      }
+
+      .scanner-btn {
+        padding: 12px 30px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .scanner-btn-close {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .scanner-btn-close:hover {
+        background: #c0392b;
+      }
+
+      .scanner-status {
+        color: white;
+        font-size: 16px;
+        margin-top: 15px;
+        text-align: center;
+      }
+
+      @media print {
+        body * {
+          visibility: hidden;
+          margin: 0;
+          padding: 0;
+        }
+
+        .invoice-print,
+        .invoice-print * {
+          visibility: visible;
+        }
+
+        .invoice-print {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          max-width: 100%;
+          box-shadow: none;
+          border: none;
+          padding: 20px;
+          font-size: 14px;
+        }
+
+        .print-header {
+          text-align: center;
+          margin-bottom: 20px;
+          border-bottom: 2px solid #000;
+          padding-bottom: 10px;
+        }
+
+        .print-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 0;
+          border-bottom: 1px dashed #ddd;
+          font-size: 16px;
+        }
+
+        .print-total {
+          text-align: center;
+          font-size: 24px;
+          font-weight: bold;
+          margin: 30px 0;
+          color: #000;
+        }
+
+        button,
+        .nav-buttons,
+        .search-box,
+        .cart,
+        header {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <h1>🛒 نظام الكاشير - سوبر ماركت</h1>
+        </div>
+        <div class="user-info">
+          <div class="user-name" id="userName">جاري التحميل...</div>
+          <div class="user-role" id="userRole"></div>
+          <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
+        </div>
+      </header>
+
+      <div class="nav-buttons">
+        <button
+          class="nav-btn success"
+          onclick="location.href = '/dashboard'"
+          title="لوحة التحكم"
+        >
+          <span style="font-size: 24px">📊</span><br />لوحة التحكم
+        </button>
+        <button
+          class="nav-btn secondary"
+          onclick="location.href = '/warehouse'"
+          title="إدارة المخزن"
+        >
+          <span style="font-size: 24px">📦</span><br />المخزن
+        </button>
+        <button
+          class="nav-btn warning"
+          onclick="location.href = '/reports'"
+          title="تقارير المبيعات والمخزون"
+        >
+          <span style="font-size: 24px">📈</span><br />تقارير المبيعات
+        </button>
+        <button
+          class="nav-btn info"
+          onclick="location.href = '/accounting'"
+          title="شجرة الحسابات"
+        >
+          <span style="font-size: 24px">🧾</span><br />شجرة الحسابات
+        </button>
+        <button
+          class="nav-btn primary"
+          onclick="location.href = '/financial_reports'"
+          title="التقارير المالية"
+        >
+          <span style="font-size: 24px">💰</span><br />تقارير مالية
+        </button>
+        <button
+          class="nav-btn danger"
+          onclick="location.href = '/suppliers'"
+          title="إدارة الموردين"
+        >
+          <span style="font-size: 24px">🚚</span><br />الموردين
+        </button>
+      </div>
+
+      <div class="main-content">
+        <div>
+          <div class="search-section">
+            <h2>🔍 البحث عن منتج</h2>
+            <div class="search-box">
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="أدخل الباركود أو اسم المنتج..."
+                autofocus
+              />
+              <button onclick="searchProduct()">بحث</button>
+              <button class="info" onclick="openBarcodeScanner()">
+                📷 مسح
+              </button>
+            </div>
+
+            <div id="message"></div>
+
+            <div class="discount-section">
+              <label
+                style="display: block; margin-bottom: 5px; font-weight: bold"
+              >
+                🎁 الخصم (اختياري):
+              </label>
+              <input
+                type="number"
+                id="discountInput"
+                placeholder="0.00"
+                step="0.01"
+                oninput="updateTotal()"
+                style="width: 100%; padding: 8px"
+              />
+            </div>
+
+            <h3 style="margin-top: 20px">📦 المنتجات المتاحة</h3>
+            <div class="product-grid" id="productsGrid">
+              <!-- سيتم ملؤه بالجافاسكريبت -->
+            </div>
+          </div>
+        </div>
+
+        <!-- قسم السلة والفاتورة -->
+        <div>
+          <div class="cart">
+            <h2>🛒 السلة</h2>
+            <div id="cartItems">
+              <p style="text-align: center; color: #999">سلة فارغة</p>
+            </div>
+
+            <div class="cart-total">
+              الإجمالي: <span id="total">0.00</span> جنيه
+            </div>
+
+            <h3>💳 طريقة الدفع</h3>
+            <div class="payment-methods">
+              <button onclick="setPaymentMethod('كاش')">كاش</button>
+              <button onclick="setPaymentMethod('فيزا')">فيزا</button>
+              <button onclick="setPaymentMethod('تحويل')">تحويل</button>
+              <button onclick="setPaymentMethod('محفظة')">محفظة</button>
+            </div>
+
+            <button class="success" onclick="checkout()">إتمام الشراء</button>
+            <button class="danger" onclick="clearCart()">مسح السلة</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- فاتورة الطباعة -->
+      <!-- فاتورة الطباعة -->
+      <div class="invoice-print" id="invoicePrint" style="display: none">
+        <div class="print-header">
+          <h2>🛒 سوبر ماركت</h2>
+          <p>فاتورة ضريبية</p>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-top: 10px;
+            "
+          >
+            <div>رقم الفاتورة: <strong id="printInvoiceNumber"></strong></div>
+            <div>التاريخ: <strong id="printDate"></strong></div>
+          </div>
+          <div style="margin-top: 5px">
+            الكاشير: <strong id="printCashier"></strong>
+          </div>
+        </div>
+
+        <div class="print-items" id="printItems">
+          <!-- سيتم ملؤه بالجافاسكريبت -->
+        </div>
+
+        <div class="print-total">
+          الإجمالي: <span id="printTotal"></span> جنيه
+        </div>
+
+        <div
+          style="
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #000;
+          "
+        >
+          <p>شكراً لزيارتكم! 👋</p>
+          <p style="font-size: 12px; color: #666">
+            هاتف: 01234567890 | العنوان: شارع السوبر ماركت
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- نافذة مسح الباركود بالكاميرا -->
+    <div id="barcodeScannerModal">
+      <div id="barcodeScannerContainer">
+        <video id="barcodeScannerVideo" playsinline></video>
+        <div class="scanner-overlay">
+          <div class="scanner-line"></div>
+        </div>
+      </div>
+      <div class="scanner-status" id="scannerStatus">
+        جاري تهيئة الكاميرا...
+      </div>
+      <div class="scanner-controls">
+        <button
+          class="scanner-btn scanner-btn-close"
+          onclick="closeBarcodeScanner()"
+        >
+          إغلاق
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal إضافة منتج من الكاشير -->
+    <div class="modal" id="addProductPosModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>➕ إضافة منتج جديد</h2>
+          <button
+            class="close-modal"
+            onclick="closeModal('addProductPosModal')"
+          >
+            &times;
+          </button>
+        </div>
+        <div id="posModalMessage"></div>
+        <form id="addProductPosForm">
+          <div class="form-group">
+            <label>الباركود *</label>
+            <input type="text" id="posProductBarcode" required />
+          </div>
+
+          <div class="form-group">
+            <label>اسم المنتج *</label>
+            <input type="text" id="posProductName" required />
+          </div>
+
+          <div class="form-group">
+            <label>السعر *</label>
+            <input type="number" id="posProductPrice" step="0.01" required />
+          </div>
+
+          <div class="form-group">
+            <label>الكمية *</label>
+            <input
+              type="number"
+              id="posProductQuantity"
+              required
+              min="1"
+              value="1"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            style="width: 100%; padding: 12px; font-size: 16px"
+          >
+            إضافة المنتج
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      let cart = [];
+      let paymentMethod = "كاش";
+      let products = [];
+      let discount = 0;
+      let barcodeScannerActive = false;
+      let scannerStream = null;
+
+      // تحميل معلومات المستخدم
+      function loadUserInfo() {
+        fetch("/get_session_info")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.logged_in) {
+              document.getElementById("userName").textContent = data.full_name;
+              document.getElementById("userRole").textContent =
+                `الصلاحية: ${data.role}`;
+            } else {
+              window.location.href = "/login";
+            }
+          });
+      }
+
+      // تسجيل الخروج
+      function logout() {
+        fetch("/logout").then(() => {
+          window.location.href = "/login";
+        });
+      }
+
+      // تحميل المنتجات عند فتح الصفحة
+      window.onload = function () {
+        loadUserInfo();
+        loadProducts();
+      };
+
+      // تحميل المنتجات من السيرفر
+      function loadProducts() {
+        fetch("/api/products")
+          .then((response) => response.json())
+          .then((data) => {
+            products = data.products.filter((p) => p.quantity > 0);
+            displayProducts();
+          });
+      }
+
+      // عرض المنتجات في الشبكة
+      function displayProducts() {
+        const grid = document.getElementById("productsGrid");
+        grid.innerHTML = "";
+
+        products.slice(0, 16).forEach((product) => {
+          const card = document.createElement("div");
+          card.className = "product-card";
+          card.onclick = () => addToCart(product);
+          card.innerHTML = `
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-price">${product.price.toFixed(2)} جنيه</div>
+                    <div class="product-quantity">المتاح: ${product.quantity}</div>
+                `;
+          grid.appendChild(card);
+        });
+      }
+
+      // البحث عن منتج
+      function searchProduct() {
+        const searchTerm = document.getElementById("searchInput").value.trim();
+
+        if (!searchTerm) {
+          showMessage("يرجى إدخال الباركود أو اسم المنتج", "error");
+          return;
+        }
+
+        fetch("/api/search_product", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ search: searchTerm }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              addToCart(data.product);
+              document.getElementById("searchInput").value = "";
+            } else {
+              showMessage(data.message, "error");
+            }
+          });
+      }
+
+      // إضافة منتج للسلة
+      function addToCart(product) {
+        // التحقق من الكمية
+        if (product.quantity <= 0) {
+          showMessage("المنتج غير متوفر في المخزون", "error");
+          return;
+        }
+
+        // البحث إذا كان المنتج موجود بالفعل
+        const existing = cart.find((item) => item.id === product.id);
+
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: 1,
+          });
+        }
+
+        updateCartDisplay();
+        showMessage(`${product.name} تمت إضافته للسلة`, "success");
+      }
+
+      // تحديث عرض السلة
+      function updateCartDisplay() {
+        const cartItems = document.getElementById("cartItems");
+        const totalElement = document.getElementById("total");
+
+        if (cart.length === 0) {
+          cartItems.innerHTML =
+            '<p style="text-align: center; color: #999;">سلة فارغة</p>';
+          totalElement.textContent = "0.00";
+          document.getElementById("discountInput").value = "0.00";
+          discount = 0;
+          return;
+        }
+
+        let html = "";
+        let subtotal = 0;
+
+        cart.forEach((item, index) => {
+          const itemTotal = item.price * item.quantity;
+          subtotal += itemTotal;
+
+          html += `
+                    <div class="cart-item">
+                        <div>
+                            <strong>${item.name}</strong><br>
+                            ${item.price.toFixed(2)} × ${item.quantity}
+                        </div>
+                        <div>
+                            <span style="color: #e74c3c; font-weight: bold;">${itemTotal.toFixed(2)}</span>
+                            <button onclick="removeItem(${index})" style="margin-left: 10px; padding: 5px 10px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">×</button>
+                        </div>
+                    </div>
+                `;
+        });
+
+        // حساب الخصم
+        discount =
+          parseFloat(document.getElementById("discountInput").value) || 0;
+        const finalTotal = subtotal - discount;
+
+        cartItems.innerHTML = html;
+        totalElement.textContent = finalTotal.toFixed(2);
+      }
+
+      // تحديث الإجمالي عند تغيير الخصم
+      function updateTotal() {
+        updateCartDisplay();
+      }
+
+      // حذف عنصر من السلة
+      function removeItem(index) {
+        cart.splice(index, 1);
+        updateCartDisplay();
+      }
+
+      // تعيين طريقة الدفع
+      function setPaymentMethod(method) {
+        paymentMethod = method;
+        showMessage(`طريقة الدفع: ${method}`, "success");
+      }
+
+      // إتمام الشراء
+      // إتمام الشراء - النسخة المصححة
+      function checkout() {
+        if (cart.length === 0) {
+          showMessage("السلة فارغة!", "error");
+          return;
+        }
+
+        // التحقق من الخصم
+        discount =
+          parseFloat(document.getElementById("discountInput").value) || 0;
+
+        // تحضير البيانات للإرسال
+        const invoiceData = {
+          items: cart.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          payment_method: paymentMethod,
+          discount: discount,
+          total: calculateTotal(),
+        };
+
+        console.log("بيانات الفاتورة المرسلة:", invoiceData);
+
+        fetch("/api/create_invoice", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(invoiceData),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("الرد من السيرفر:", data);
+
+            if (data.success) {
+              // إنشاء بيانات الفاتورة محلياً إذا كان السيرفر لا يرجع البيانات كاملة
+              const invoiceDataForPrint = {
+                invoice_number: data.invoice_number || generateInvoiceNumber(),
+                date: new Date(),
+                cashier: document.getElementById("userName").textContent,
+                items: cart,
+                total: calculateTotal() - discount,
+                payment_method: paymentMethod,
+                discount: discount,
+              };
+
+              // عرض الفاتورة للطباعة
+              printInvoice(invoiceDataForPrint);
+
+              showMessage(
+                `✅ تم إتمام الشراء بنجاح!<br>رقم الفاتورة: ${invoiceDataForPrint.invoice_number}<br>الإجمالي: ${invoiceDataForPrint.total.toFixed(2)} جنيه`,
+                "success",
+              );
+
+              cart = [];
+              updateCartDisplay();
+              loadProducts(); // تحديث كمية المنتجات
+            } else {
+              showMessage(
+                "حدث خطأ أثناء إنشاء الفاتورة: " + (data.message || ""),
+                "error",
+              );
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            showMessage("خطأ في الاتصال بالسيرفر", "error");
+
+            // في حالة فشل الاتصال بالسيرفر، ننشئ فاتورة محلية
+            const localInvoiceData = {
+              invoice_number: generateInvoiceNumber(),
+              date: new Date(),
+              cashier: document.getElementById("userName").textContent,
+              items: cart,
+              total: calculateTotal() - discount,
+              payment_method: paymentMethod,
+              discount: discount,
+            };
+
+            printInvoice(localInvoiceData);
+            showMessage(
+              "✅ تم إنشاء فاتورة محلية، ولكن يرجى مراجعة الاتصال بالسيرفر",
+              "warning",
+            );
+          });
+      }
+
+      // دالة مساعدة لحساب الإجمالي
+      function calculateTotal() {
+        let total = 0;
+        cart.forEach((item) => {
+          total += item.price * item.quantity;
+        });
+        return total;
+      }
+
+      // توليد رقم فاتورة عشوائي
+      function generateInvoiceNumber() {
+        return "INV-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+      }
+      // دالة اختبار الطباعة
+      function testPrint() {
+        // بيانات اختبارية
+        const testData = {
+          invoice_number: "TEST-001",
+          date: new Date(),
+          cashier: "كاشير اختبار",
+          items: [
+            { name: "منتج اختبار 1", price: 10, quantity: 2 },
+            { name: "منتج اختبار 2", price: 20, quantity: 1 },
+          ],
+          total: 40,
+          payment_method: "كاش",
+          discount: 0,
+        };
+
+        printInvoice(testData);
+      }
+
+      // زر اختبار في الصفحة (يمكن إضافته مؤقتاً)
+      function addTestButton() {
+        const header = document.querySelector("header");
+        const testBtn = document.createElement("button");
+        testBtn.textContent = "🔧 اختبار الطباعة";
+        testBtn.style.background = "#9b59b6";
+        testBtn.style.marginLeft = "10px";
+        testBtn.onclick = testPrint;
+        document.querySelector(".user-info").appendChild(testBtn);
+      }
+
+      // إضافة زر الاختبار عند التحميل
+      window.onload = function () {
+        loadUserInfo();
+        loadProducts();
+        addTestButton(); // إضافة زر الاختبار
+      };
+      // طباعة الفاتورة
+      // طباعة الفاتورة - النسخة المصححة
+      function printInvoice(data) {
+        const printDiv = document.getElementById("invoicePrint");
+        const printItems = document.getElementById("printItems");
+
+        // ملء بيانات الفاتورة
+        document.getElementById("printInvoiceNumber").textContent =
+          data.invoice_number;
+        document.getElementById("printDate").textContent =
+          new Date().toLocaleDateString("ar-EG");
+        document.getElementById("printCashier").textContent =
+          document.getElementById("userName").textContent;
+
+        // حساب الإجمالي
+        let subtotal = 0;
+        cart.forEach((item) => {
+          subtotal += item.price * item.quantity;
+        });
+        const finalTotal = subtotal - discount;
+
+        document.getElementById("printTotal").textContent =
+          finalTotal.toFixed(2);
+
+        // ملء المنتجات
+        printItems.innerHTML = "";
+        cart.forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.className = "print-item";
+          itemDiv.innerHTML = `
+            <span>${item.name} (${item.quantity})</span>
+            <span>${(item.price * item.quantity).toFixed(2)}</span>
+        `;
+          printItems.appendChild(itemDiv);
+        });
+
+        // إضافة الخصم إذا وجد
+        if (discount > 0) {
+          const discountDiv = document.createElement("div");
+          discountDiv.className = "print-item";
+          discountDiv.innerHTML = `
+            <span>الخصم</span>
+            <span style="color: #e74c3c;">-${discount.toFixed(2)}</span>
+        `;
+          printItems.appendChild(discountDiv);
+        }
+
+        // إضافة طريقة الدفع
+        const paymentDiv = document.createElement("div");
+        paymentDiv.className = "print-item";
+        paymentDiv.innerHTML = `
+        <span>طريقة الدفع</span>
+        <span>${paymentMethod}</span>
+    `;
+        printItems.appendChild(paymentDiv);
+
+        // إظهار فاتورة الطباعة
+        printDiv.style.display = "block";
+
+        // الانتظار قليلاً ثم الطباعة
+        setTimeout(() => {
+          window.print();
+
+          // إخفاء الفاتورة بعد الطباعة
+          setTimeout(() => {
+            printDiv.style.display = "none";
+          }, 500);
+        }, 500);
+      }
+
+      // مسح السلة
+      function clearCart() {
+        if (confirm("هل أنت متأكد من مسح السلة؟")) {
+          cart = [];
+          updateCartDisplay();
+          showMessage("تم مسح السلة", "success");
+        }
+      }
+
+      // عرض رسالة
+      function showMessage(text, type) {
+        const messageDiv = document.getElementById("message");
+        messageDiv.className = `message ${type}-message`;
+        messageDiv.innerHTML = text;
+
+        setTimeout(() => {
+          messageDiv.innerHTML = "";
+        }, 3000);
+      }
+
+      // البحث بالضغط على إنتر
+      document
+        .getElementById("searchInput")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            searchProduct();
+          }
+        });
+
+      // فتح نافذة مسح الباركود بالكاميرا
+      function openBarcodeScanner() {
+        document.getElementById("barcodeScannerModal").style.display = "flex";
+        document.getElementById("scannerStatus").textContent =
+          "جاري تهيئة الكاميرا...";
+
+        // طلب الوصول للكاميرا
+        navigator.mediaDevices
+          .getUserMedia({
+            video: {
+              facingMode: "environment", // الكاميرا الخلفية للجوال
+            },
+          })
+          .then((stream) => {
+            scannerStream = stream;
+            const video = document.getElementById("barcodeScannerVideo");
+            video.srcObject = stream;
+            video.play();
+
+            document.getElementById("scannerStatus").textContent =
+              " وجه الكاميرا نحو الباركود...";
+
+            // بدء مسح الباركود
+            barcodeScannerActive = true;
+            startBarcodeScanner();
+          })
+          .catch((err) => {
+            console.error("خطأ في الكاميرا:", err);
+            document.getElementById("scannerStatus").textContent =
+              "خطأ: " + err.message;
+            setTimeout(closeBarcodeScanner, 3000);
+          });
+      }
+
+      // إغلاق نافذة مسح الباركود
+      function closeBarcodeScanner() {
+        barcodeScannerActive = false;
+
+        // إيقاف الكاميرا
+        if (scannerStream) {
+          scannerStream.getTracks().forEach((track) => track.stop());
+          scannerStream = null;
+        }
+
+        // إيقاف الفيديو
+        const video = document.getElementById("barcodeScannerVideo");
+        video.srcObject = null;
+
+        document.getElementById("barcodeScannerModal").style.display = "none";
+      }
+
+      // بدء مسح الباركود
+      function startBarcodeScanner() {
+        if (!barcodeScannerActive) return;
+
+        const video = document.getElementById("barcodeScannerVideo");
+
+        // التقاط صورة من الفيديو
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // تحويل الصورة لبيانات
+        const imageData = context.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        );
+
+        // استخدام QuaggaJS لمسح الباركود
+        Quagga.decodeSingle(
+          {
+            decoder: {
+              readers: [
+                "ean_13_reader",
+                "ean_8_reader",
+                "upc_reader",
+                "code_128_reader",
+              ],
+            },
+            locate: true,
+            src: canvas.toDataURL("image/png"),
+          },
+          function (result) {
+            if (result && result.codeResult) {
+              const barcode = result.codeResult.code;
+              document.getElementById("scannerStatus").textContent =
+                "تم اكتشاف: " + barcode;
+
+              // البحث عن المنتج بالباركود
+              searchProductByBarcode(barcode);
+
+              // إغلاق النافذة بعد النجاح
+              setTimeout(closeBarcodeScanner, 1000);
+            } else {
+              // إعادة المحاولة
+              setTimeout(startBarcodeScanner, 500);
+            }
+          },
+        );
+      }
+
+      // البحث عن منتج بالباركود
+      function searchProductByBarcode(barcode) {
+        fetch("/api/search_product", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ search: barcode }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              addToCart(data.product);
+              showMessage(
+                `✅ ${data.product.name} تمت إضافته للسلة`,
+                "success",
+              );
+            } else {
+              showMessage("المنتج غير موجود", "error");
+
+              // سؤال المستخدم إذا كان يريد إضافة منتج جديد
+              if (confirm("المنتج غير موجود. هل تريد إضافته؟")) {
+                openAddProductFromPos(barcode);
+              }
+            }
+          });
+      }
+
+      // فتح نافذة إضافة منتج من الكاشير
+      function openAddProductFromPos(barcode = "") {
+        document.getElementById("addProductPosModal").style.display = "flex";
+        document.getElementById("addProductPosForm").reset();
+        document.getElementById("posProductBarcode").value = barcode;
+        document.getElementById("posModalMessage").innerHTML = "";
+      }
+
+      // إغلاق النافذة
+      function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+      }
+
+      // إضافة منتج من الكاشير
+      document
+        .getElementById("addProductPosForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const productData = {
+            barcode: document.getElementById("posProductBarcode").value,
+            name: document.getElementById("posProductName").value,
+            price: document.getElementById("posProductPrice").value,
+            cost_price: 0,
+            quantity: document.getElementById("posProductQuantity").value,
+            min_stock: 5,
+            category: "أخرى",
+            supplier: "",
+          };
+
+          const messageDiv = document.getElementById("posModalMessage");
+
+          fetch("/api/products", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(productData),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                messageDiv.className = "message success";
+                messageDiv.textContent = data.message;
+
+                // إضافة المنتج مباشرة للسلة
+                setTimeout(() => {
+                  closeModal("addProductPosModal");
+                  loadProducts();
+
+                  // البحث عن المنتج المضاف وإضافته للسلة
+                  const newProduct = products.find(
+                    (p) => p.barcode === productData.barcode,
+                  );
+                  if (newProduct) {
+                    addToCart(newProduct);
+                  }
+                }, 1000);
+              } else {
+                messageDiv.className = "message error";
+                messageDiv.textContent = data.message;
+              }
+            });
+        });
+
+      // إغلاق النافذة عند الضغط خارجها
+      window.onclick = function (event) {
+        const modal = document.getElementById("addProductPosModal");
+        const scannerModal = document.getElementById("barcodeScannerModal");
+
+        if (event.target === modal) {
+          closeModal("addProductPosModal");
+        }
+
+        if (event.target === scannerModal) {
+          closeBarcodeScanner();
+        }
+      };
+    </script>
+  </body>
+</html>

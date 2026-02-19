@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام المخزن - سوبر ماركت</title>
+    <!-- إضافة مكتبة مسح الباركود -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #3498db;
+            color: white;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .main-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card.danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .stat-card.warning {
+            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .products-table th,
+        .products-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .products-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .products-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .low-stock {
+            color: #e74c3c;
+            font-weight: bold;
+            background-color: #ffebee;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
+        .barcode-scanner {
+            text-align: center;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .barcode-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            text-align: center;
+            border: 3px solid #667eea;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .print-btn {
+            background: #9b59b6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        
+        /* نافذة الكاميرا */
+        #barcodeScannerModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        #barcodeScannerContainer {
+            width: 90%;
+            max-width: 640px;
+            position: relative;
+        }
+        
+        #barcodeScannerVideo {
+            width: 100%;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            background: black;
+        }
+        
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 3px solid rgba(102, 126, 234, 0.8);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+        
+        .scanner-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(102, 126, 234, 0.8);
+            animation: scan 2s infinite linear;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        
+        .scanner-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .scanner-btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .scanner-btn-close {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .scanner-btn-close:hover {
+            background: #c0392b;
+        }
+        
+        .scanner-status {
+            color: white;
+            font-size: 16px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        @media print {
+            .btn, header, .sidebar, .no-print {
+                display: none !important;
+            }
+            
+            .main-content {
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 نظام المخزن</h1>
+            <div>
+                <button class="btn" onclick="location.href='/'">← العودة للكاشير</button>
+                <button class="btn btn-primary" onclick="openAddProductModal()">+ إضافة منتج</button>
+                <button class="btn" onclick="openBarcodeScanner()">📷 مسح باركود</button>
+                <button class="btn print-btn" onclick="printStockReport()">🖨️ طباعة التقرير</button>
+            </div>
+        </header>
+        
+        <div class="content">
+            <div class="sidebar">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">إجمالي المنتجات</div>
+                        <div class="stat-value" id="totalProducts">0</div>
+                    </div>
+                    
+                    <div class="stat-card warning">
+                        <div class="stat-label">منخفض المخزون</div>
+                        <div class="stat-value" id="lowStock">0</div>
+                    </div>
+                    
+                    <div class="stat-card danger">
+                        <div class="stat-label">نفذ المخزون</div>
+                        <div class="stat-value" id="outOfStock">0</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">إجمالي الكمية</div>
+                        <div class="stat-value" id="totalQuantity">0</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 20px 0 10px 0;">التصنيفات</h3>
+                <div id="categoriesList"></div>
+            </div>
+            
+            <div class="main-content">
+                <h2>📋 قائمة المنتجات</h2>
+                
+                <!-- ماسح الباركود -->
+                <div class="barcode-scanner">
+                    <h3>📱 ماسح الباركود</h3>
+                    <input type="text" class="barcode-input" id="barcodeScanner" 
+                           placeholder="أو أدخل الباركود يدوياً..." 
+                           onkeypress="handleBarcodeScan(event)">
+                    <p style="color: #666; font-size: 12px;">
+                        💡 ملاحظة: اضغط زر "📷 مسح باركود" لاستخدام الكاميرا أو أدخل الباركود يدوياً
+                    </p>
+                </div>
+                
+                <div id="message"></div>
+                <table class="products-table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>الباركود</th>
+                            <th>الاسم</th>
+                            <th>السعر</th>
+                            <th>سعر الشراء</th>
+                            <th>الكمية</th>
+                            <th>الحد الأدنى</th>
+                            <th>التصنيف</th>
+                            <th>المورد</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsBody">
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px;">
+                                جاري تحميل المنتجات...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- نافذة مسح الباركود بالكاميرا -->
+    <div id="barcodeScannerModal">
+        <div id="barcodeScannerContainer">
+            <video id="barcodeScannerVideo" playsinline></video>
+            <div class="scanner-overlay">
+                <div class="scanner-line"></div>
+            </div>
+        </div>
+        <div class="scanner-status" id="scannerStatus">جاري تهيئة الكاميرا...</div>
+        <div class="scanner-controls">
+            <button class="scanner-btn scanner-btn-close" onclick="closeBarcodeScanner()">إغلاق</button>
+        </div>
+    </div>
+    
+    <!-- Modal إضافة/تعديل منتج -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">➕ إضافة منتج جديد</h2>
+                <button class="close-modal" onclick="closeModal('productModal')">&times;</button>
+            </div>
+            <div id="modalMessage"></div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                
+                <div class="form-group">
+                    <label>الباركود *</label>
+                    <input type="text" id="productBarcode" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>اسم المنتج *</label>
+                    <input type="text" id="productName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>السعر (للبيع) *</label>
+                    <input type="number" id="productPrice" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>سعر الشراء</label>
+                    <input type="number" id="productCostPrice" step="0.01" value="0">
+                </div>
+                
+                <div class="form-group">
+                    <label>الكمية *</label>
+                    <input type="number" id="productQuantity" required min="0">
+                </div>
+                
+                <div class="form-group">
+                    <label>الحد الأدنى للمخزون</label>
+                    <input type="number" id="productMinStock" value="5" min="0">
+                </div>
+                
+                <div class="form-group">
+                    <label>التصنيف</label>
+                    <select id="productCategory">
+                        <option value="">اختر التصنيف</option>
+                        <option value="أغذية">أغذية</option>
+                        <option value="منظفات">منظفات</option>
+                        <option value="مستحضرات">مستحضرات</option>
+                        <option value="مشروبات">مشروبات</option>
+                        <option value="أخرى">أخرى</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>المورد</label>
+                    <input type="text" id="productSupplier">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">
+                    حفظ المنتج
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- صفحة الطباعة -->
+    <div id="printArea" style="display: none;">
+        <div style="text-align: center; padding: 20px;">
+            <h1>📦 تقرير المخزن</h1>
+            <p>تاريخ الطباعة: <span id="printDate"></span></p>
+            <p>إجمالي المنتجات: <span id="printTotalProducts"></span></p>
+            <p>إجمالي الكمية: <span id="printTotalQuantity"></span></p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid #000; padding: 10px;">الباركود</th>
+                    <th style="border: 1px solid #000; padding: 10px;">الاسم</th>
+                    <th style="border: 1px solid #000; padding: 10px;">السعر</th>
+                    <th style="border: 1px solid #000; padding: 10px;">الكمية</th>
+                    <th style="border: 1px solid #000; padding: 10px;">التصنيف</th>
+                </tr>
+            </thead>
+            <tbody id="printTableBody">
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        let products = [];
+        let editingProductId = null;
+        let barcodeScannerActive = false;
+        let scannerStream = null;
+        
+        // تحميل المنتجات عند فتح الصفحة
+        window.onload = function() {
+            loadProducts();
+            document.getElementById('printDate').textContent = new Date().toLocaleDateString('ar-EG');
+        };
+        
+        // تحميل المنتجات
+        function loadProducts() {
+            fetch('/api/products')
+                .then(response => response.json())
+                .then(data => {
+                    products = data.products;
+                    displayProducts();
+                    updateStats();
+                });
+        }
+        
+        // عرض المنتجات
+        function displayProducts() {
+            const tbody = document.getElementById('productsBody');
+            tbody.innerHTML = '';
+            
+            if (products.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px;">
+                            لا يوجد منتجات
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.className = product.low_stock ? 'low-stock' : '';
+                row.innerHTML = `
+                    <td>${product.barcode || '-'}</td>
+                    <td><strong>${product.name}</strong></td>
+                    <td>${product.price.toFixed(2)} جنيه</td>
+                    <td>${product.cost_price.toFixed(2)} جنيه</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.min_stock}</td>
+                    <td>${product.category || '-'}</td>
+                    <td>${product.supplier || '-'}</td>
+                    <td>
+                        <button class="btn btn-warning" onclick="addStock(${product.id})" title="إضافة كمية">
+                            + كمية
+                        </button>
+                        <button class="btn btn-info" onclick="editProduct(${product.id})" title="تعديل">
+                            ✏️ تعديل
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteProduct(${product.id})" title="حذف">
+                            🗑️ حذف
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تحديث الإحصائيات
+        function updateStats() {
+            const lowStock = products.filter(p => p.quantity <= p.min_stock && p.quantity > 0).length;
+            const outOfStock = products.filter(p => p.quantity === 0).length;
+            
+            document.getElementById('totalProducts').textContent = products.length;
+            document.getElementById('lowStock').textContent = lowStock;
+            document.getElementById('outOfStock').textContent = outOfStock;
+            document.getElementById('totalQuantity').textContent = 
+                products.reduce((sum, p) => sum + p.quantity, 0);
+        }
+        
+        // فتح نافذة إضافة/تعديل منتج
+        function openAddProductModal(barcode = '') {
+            editingProductId = null;
+            document.getElementById('modalTitle').textContent = '➕ إضافة منتج جديد';
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = '';
+            document.getElementById('productBarcode').value = barcode;
+            document.getElementById('modalMessage').innerHTML = '';
+            document.getElementById('productModal').style.display = 'flex';
+            
+            // التركيز على حقل الاسم
+            setTimeout(() => {
+                document.getElementById('productName').focus();
+            }, 100);
+        }
+        
+        // تعديل منتج
+        function editProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            editingProductId = productId;
+            document.getElementById('modalTitle').textContent = '✏️ تعديل منتج';
+            document.getElementById('productId').value = product.id;
+            document.getElementById('productBarcode').value = product.barcode || '';
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productPrice').value = product.price;
+            document.getElementById('productCostPrice').value = product.cost_price;
+            document.getElementById('productQuantity').value = product.quantity;
+            document.getElementById('productMinStock').value = product.min_stock;
+            document.getElementById('productCategory').value = product.category || '';
+            document.getElementById('productSupplier').value = product.supplier || '';
+            
+            document.getElementById('productModal').style.display = 'flex';
+            
+            // التركيز على اسم المنتج
+            setTimeout(() => {
+                document.getElementById('productName').focus();
+            }, 100);
+        }
+        
+        // إغلاق النافذة
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            editingProductId = null;
+        }
+        
+        // حفظ المنتج (إضافة أو تعديل)
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const productData = {
+                barcode: document.getElementById('productBarcode').value,
+                name: document.getElementById('productName').value,
+                price: document.getElementById('productPrice').value,
+                cost_price: document.getElementById('productCostPrice').value,
+                quantity: document.getElementById('productQuantity').value,
+                min_stock: document.getElementById('productMinStock').value,
+                category: document.getElementById('productCategory').value,
+                supplier: document.getElementById('productSupplier').value
+            };
+            
+            const messageDiv = document.getElementById('modalMessage');
+            
+            if (editingProductId) {
+                // تعديل منتج موجود
+                fetch(`/api/products/${editingProductId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        messageDiv.className = 'message success';
+                        messageDiv.textContent = data.message;
+                        setTimeout(() => {
+                            closeModal('productModal');
+                            loadProducts();
+                        }, 1500);
+                    } else {
+                        messageDiv.className = 'message error';
+                        messageDiv.textContent = data.message;
+                    }
+                });
+            } else {
+                // إضافة منتج جديد
+                fetch('/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        messageDiv.className = 'message success';
+                        messageDiv.textContent = data.message;
+                        setTimeout(() => {
+                            closeModal('productModal');
+                            loadProducts();
+                        }, 1500);
+                    } else {
+                        messageDiv.className = 'message error';
+                        messageDiv.textContent = data.message;
+                    }
+                });
+            }
+        });
+        
+        // إضافة كمية لمنتج
+        function addStock(productId) {
+            const quantity = prompt('أدخل الكمية المراد إضافتها:');
+            const reason = prompt('سبب الإضافة (اختياري):', 'إضافة مخزون');
+            
+            if (quantity && parseInt(quantity) > 0) {
+                fetch(`/api/products/${productId}/add_stock`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        quantity: parseInt(quantity),
+                        reason: reason || 'إضافة مخزون'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const messageDiv = document.getElementById('message');
+                    if (data.success) {
+                        messageDiv.className = 'message success';
+                        messageDiv.textContent = data.message;
+                        setTimeout(() => {
+                            messageDiv.className = '';
+                            messageDiv.textContent = '';
+                        }, 3000);
+                        loadProducts();
+                    }
+                });
+            }
+        }
+        
+        // حذف منتج
+        function deleteProduct(productId) {
+            if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+                fetch(`/api/products/${productId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadProducts();
+                    }
+                });
+            }
+        }
+        
+        // مسح الباركود يدوياً
+        function handleBarcodeScan(event) {
+            if (event.key === 'Enter') {
+                const barcode = document.getElementById('barcodeScanner').value.trim();
+                
+                if (barcode) {
+                    // البحث عن المنتج بالباركود
+                    const existingProduct = products.find(p => p.barcode === barcode);
+                    
+                    if (existingProduct) {
+                        // إذا موجود، افتح نافذة تعديله
+                        editProduct(existingProduct.id);
+                    } else {
+                        // إذا مش موجود، افتح نافذة إضافة جديدة
+                        openAddProductModal(barcode);
+                    }
+                    
+                    // مسح حقل الباركود
+                    document.getElementById('barcodeScanner').value = '';
+                }
+            }
+        }
+        
+        // فتح نافذة مسح الباركود بالكاميرا
+        function openBarcodeScanner() {
+            document.getElementById('barcodeScannerModal').style.display = 'flex';
+            document.getElementById('scannerStatus').textContent = 'جاري تهيئة الكاميرا...';
+            
+            // طلب الوصول للكاميرا
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: "environment" // الكاميرا الخلفية للجوال
+                } 
+            })
+            .then(stream => {
+                scannerStream = stream;
+                const video = document.getElementById('barcodeScannerVideo');
+                video.srcObject = stream;
+                video.play();
+                
+                document.getElementById('scannerStatus').textContent = ' وجه الكاميرا نحو الباركود...';
+                
+                // بدء مسح الباركود
+                barcodeScannerActive = true;
+                startBarcodeScanner();
+            })
+            .catch(err => {
+                console.error('خطأ في الكاميرا:', err);
+                document.getElementById('scannerStatus').textContent = 'خطأ: ' + err.message;
+                setTimeout(closeBarcodeScanner, 3000);
+            });
+        }
+        
+        // إغلاق نافذة مسح الباركود
+        function closeBarcodeScanner() {
+            barcodeScannerActive = false;
+            
+            // إيقاف الكاميرا
+            if (scannerStream) {
+                scannerStream.getTracks().forEach(track => track.stop());
+                scannerStream = null;
+            }
+            
+            // إيقاف الفيديو
+            const video = document.getElementById('barcodeScannerVideo');
+            video.srcObject = null;
+            
+            document.getElementById('barcodeScannerModal').style.display = 'none';
+        }
+        
+        // بدء مسح الباركود
+        function startBarcodeScanner() {
+            if (!barcodeScannerActive) return;
+            
+            const video = document.getElementById('barcodeScannerVideo');
+            
+            // التقاط صورة من الفيديو
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // تحويل الصورة لبيانات
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            
+            // استخدام QuaggaJS لمسح الباركود
+            Quagga.decodeSingle({
+                decoder: {
+                    readers: ["ean_13_reader", "ean_8_reader", "upc_reader", "code_128_reader"]
+                },
+                locate: true,
+                src: canvas.toDataURL('image/png')
+            }, function(result) {
+                if (result && result.codeResult) {
+                    const barcode = result.codeResult.code;
+                    document.getElementById('scannerStatus').textContent = 'تم اكتشاف: ' + barcode;
+                    
+                    // البحث عن المنتج بالباركود
+                    searchProductByBarcode(barcode);
+                    
+                    // إغلاق النافذة بعد النجاح
+                    setTimeout(closeBarcodeScanner, 1000);
+                } else {
+                    // إعادة المحاولة
+                    setTimeout(startBarcodeScanner, 500);
+                }
+            });
+        }
+        
+        // البحث عن منتج بالباركود
+        function searchProductByBarcode(barcode) {
+            const existingProduct = products.find(p => p.barcode === barcode);
+            
+            if (existingProduct) {
+                // إذا موجود، افتح نافذة تعديله
+                editProduct(existingProduct.id);
+            } else {
+                // إذا مش موجود، افتح نافذة إضافة جديدة
+                openAddProductModal(barcode);
+            }
+        }
+        
+        // طباعة تقرير المخزون
+        function printStockReport() {
+            // تحديث بيانات الطباعة
+            document.getElementById('printTotalProducts').textContent = products.length;
+            document.getElementById('printTotalQuantity').textContent = 
+                products.reduce((sum, p) => sum + p.quantity, 0);
+            
+            // ملء جدول الطباعة
+            const printBody = document.getElementById('printTableBody');
+            printBody.innerHTML = '';
+            
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="border: 1px solid #000; padding: 8px;">${product.barcode || '-'}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${product.name}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${product.price.toFixed(2)}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${product.quantity}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${product.category || '-'}</td>
+                `;
+                printBody.appendChild(row);
+            });
+            
+            // طباعة الصفحة
+            window.print();
+        }
+        
+        // إغلاق النافذة عند الضغط خارجها
+        window.onclick = function(event) {
+            const modal = document.getElementById('productModal');
+            const scannerModal = document.getElementById('barcodeScannerModal');
+            
+            if (event.target === modal) {
+                closeModal('productModal');
+            }
+            
+            if (event.target === scannerModal) {
+                closeBarcodeScanner();
+            }
+        };
+    </script>
+</body>
+</html>

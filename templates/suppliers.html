@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الموردين - سوبر ماركت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #3498db;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .suppliers-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .suppliers-table th,
+        .suppliers-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .suppliers-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .suppliers-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .balance-positive {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .balance-negative {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 إدارة الموردين</h1>
+            <div>
+                <button class="btn" onclick="location.href='/'">← العودة للكاشير</button>
+                <button class="btn btn-primary" onclick="openAddSupplierModal()">+ إضافة مورد</button>
+            </div>
+        </header>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="location.href='/purchase_orders'">📋 أوامر الشراء</button>
+            <button class="nav-btn info" onclick="location.href='/supplier_payments'">💰 مدفوعات الموردين</button>
+            <button class="nav-btn warning" onclick="location.href='/supplier_accounts'">📊 حسابات الموردين</button>
+        </div>
+        
+        <div class="content">
+            <h2>📋 قائمة الموردين</h2>
+            <div id="message"></div>
+            <table class="suppliers-table" id="suppliersTable">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الهاتف</th>
+                        <th>العنوان</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>أوامر الشراء</th>
+                        <th>الرصيد</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="suppliersBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            جاري تحميل الموردين...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Modal إضافة/تعديل مورد -->
+    <div class="modal" id="supplierModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">➕ إضافة مورد جديد</h2>
+                <button class="close-modal" onclick="closeModal('supplierModal')">&times;</button>
+            </div>
+            <div id="modalMessage"></div>
+            <form id="supplierForm">
+                <input type="hidden" id="supplierId">
+                
+                <div class="form-group">
+                    <label>اسم المورد *</label>
+                    <input type="text" id="supplierName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>رقم الهاتف *</label>
+                    <input type="text" id="supplierPhone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>العنوان</label>
+                    <input type="text" id="supplierAddress">
+                </div>
+                
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="supplierEmail">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">
+                    حفظ المورد
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let suppliers = [];
+        let editingSupplierId = null;
+        
+        // تحميل الموردين عند فتح الصفحة
+        window.onload = function() {
+            loadSuppliers();
+        };
+        
+        // تحميل الموردين
+        function loadSuppliers() {
+            fetch('/api/suppliers')
+                .then(response => response.json())
+                .then(data => {
+                    suppliers = data.suppliers;
+                    displaySuppliers();
+                });
+        }
+        
+        // عرض الموردين
+        function displaySuppliers() {
+            const tbody = document.getElementById('suppliersBody');
+            tbody.innerHTML = '';
+            
+            if (suppliers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            لا يوجد موردين
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            suppliers.forEach(supplier => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${supplier.name}</strong></td>
+                    <td>${supplier.phone}</td>
+                    <td>${supplier.address || '-'}</td>
+                    <td>${supplier.email || '-'}</td>
+                    <td>${supplier.po_count || 0}</td>
+                    <td class="${supplier.account_balance > 0 ? 'balance-negative' : 'balance-positive'}">
+                        ${Math.abs(supplier.account_balance).toFixed(2)} جنيه
+                    </td>
+                    <td>
+                        <button class="btn info" onclick="editSupplier(${supplier.id})" title="تعديل">✏️</button>
+                        <button class="btn btn-danger" onclick="deleteSupplier(${supplier.id})" title="حذف">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // فتح نافذة إضافة مورد
+        function openAddSupplierModal() {
+            editingSupplierId = null;
+            document.getElementById('modalTitle').textContent = '➕ إضافة مورد جديد';
+            document.getElementById('supplierForm').reset();
+            document.getElementById('supplierId').value = '';
+            document.getElementById('modalMessage').innerHTML = '';
+            document.getElementById('supplierModal').style.display = 'flex';
+        }
+        
+        // تعديل مورد
+        function editSupplier(supplierId) {
+            const supplier = suppliers.find(s => s.id === supplierId);
+            if (!supplier) return;
+            
+            editingSupplierId = supplierId;
+            document.getElementById('modalTitle').textContent = '✏️ تعديل مورد';
+            document.getElementById('supplierId').value = supplier.id;
+            document.getElementById('supplierName').value = supplier.name;
+            document.getElementById('supplierPhone').value = supplier.phone;
+            document.getElementById('supplierAddress').value = supplier.address || '';
+            document.getElementById('supplierEmail').value = supplier.email || '';
+            
+            document.getElementById('supplierModal').style.display = 'flex';
+        }
+        
+        // إغلاق النافذة
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            editingSupplierId = null;
+        }
+        
+        // حفظ المورد (إضافة أو تعديل)
+        document.getElementById('supplierForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const supplierData = {
+                name: document.getElementById('supplierName').value,
+                phone: document.getElementById('supplierPhone').value,
+                address: document.getElementById('supplierAddress').value,
+                email: document.getElementById('supplierEmail').value
+            };
+            
+            const messageDiv = document.getElementById('modalMessage');
+            
+            if (editingSupplierId) {
+                // تعديل مورد موجود
+                fetch(`/api/suppliers/${editingSupplierId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(supplierData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        messageDiv.className = 'message success';
+                        messageDiv.textContent = data.message;
+                        setTimeout(() => {
+                            closeModal('supplierModal');
+                            loadSuppliers();
+                        }, 1500);
+                    } else {
+                        messageDiv.className = 'message error';
+                        messageDiv.textContent = data.message;
+                    }
+                });
+            } else {
+                // إضافة مورد جديد
+                fetch('/api/suppliers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(supplierData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        messageDiv.className = 'message success';
+                        messageDiv.textContent = data.message;
+                        setTimeout(() => {
+                            closeModal('supplierModal');
+                            loadSuppliers();
+                        }, 1500);
+                    } else {
+                        messageDiv.className = 'message error';
+                        messageDiv.textContent = data.message;
+                    }
+                });
+            }
+        });
+        
+        // حذف مورد
+        function deleteSupplier(supplierId) {
+            if (confirm('هل أنت متأكد من حذف هذا المورد؟')) {
+                fetch(`/api/suppliers/${supplierId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const messageDiv = document.getElementById('message');
+                    if (data.success) {
+                        messageDiv.className = 'message success';
+                        messageDiv.textContent = data.message;
+                        setTimeout(() => {
+                            messageDiv.className = '';
+                            messageDiv.textContent = '';
+                        }, 3000);
+                        loadSuppliers();
+                    } else {
+                        messageDiv.className = 'message error';
+                        messageDiv.textContent = data.message;
+                    }
+                });
+            }
+        }
+        
+        // إغلاق النافذة عند الضغط خارجها
+        window.onclick = function(event) {
+            const modal = document.getElementById('supplierModal');
+            if (event.target === modal) {
+                closeModal('supplierModal');
+            }
+        };
+    </script>
+</body>
+</html>

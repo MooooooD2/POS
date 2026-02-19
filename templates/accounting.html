@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شجرة الحسابات - سوبر ماركت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1, h2 {
+            font-size: 28px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .accounts-tree {
+            margin-top: 20px;
+        }
+        
+        .main-account {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .main-account:hover {
+            opacity: 0.9;
+        }
+        
+        .sub-accounts {
+            padding: 10px 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .sub-account {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sub-account:last-child {
+            border-bottom: none;
+        }
+        
+        .account-info {
+            flex: 1;
+        }
+        
+        .account-code {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .account-name {
+            font-size: 16px;
+            margin-top: 5px;
+        }
+        
+        .account-balance {
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .account-balance.negative {
+            color: #e74c3c;
+        }
+        
+        .account-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .account-type {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .account-type.asset { background: #3498db; color: white; }
+        .account-type.liability { background: #e74c3c; color: white; }
+        .account-type.equity { background: #9b59b6; color: white; }
+        .account-type.revenue { background: #27ae60; color: white; }
+        .account-type.expense { background: #f39c12; color: white; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 شجرة الحسابات</h1>
+            <div>
+                <button class="btn" onclick="location.href='/'">← العودة للكاشير</button>
+                <button class="btn" onclick="location.href='/financial_reports'">📈 التقارير المالية</button>
+                <button class="btn btn-primary" onclick="openAddAccountModal()">+ إضافة حساب</button>
+            </div>
+        </header>
+        
+        <div class="content">
+            <h2>📋 هيكل الحسابات</h2>
+            <div id="message"></div>
+            <div class="accounts-tree" id="accountsTree">
+                <!-- سيتم ملؤه بالجافاسكريبت -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal إضافة حساب -->
+    <div class="modal" id="addAccountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ إضافة حساب جديد</h2>
+                <button class="close-modal" onclick="closeModal('addAccountModal')">&times;</button>
+            </div>
+            <div id="modalMessage"></div>
+            <form id="addAccountForm">
+                <div class="form-group">
+                    <label>كود الحساب *</label>
+                    <input type="text" id="accountCode" required placeholder="مثال: 1100">
+                </div>
+                
+                <div class="form-group">
+                    <label>اسم الحساب *</label>
+                    <input type="text" id="accountName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>نوع الحساب *</label>
+                    <select id="accountType" required>
+                        <option value="">اختر النوع</option>
+                        <option value="asset">أصول</option>
+                        <option value="liability">خصوم</option>
+                        <option value="equity">حقوق ملكية</option>
+                        <option value="revenue">إيرادات</option>
+                        <option value="expense">مصروفات</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>حساب رئيسي (اختياري)</label>
+                    <select id="parentId">
+                        <option value="">لا يوجد (حساب رئيسي)</option>
+                        <!-- سيتم ملؤه بالجافاسكريبت -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>وصف</label>
+                    <textarea id="accountDescription" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">
+                    إضافة الحساب
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let accounts = [];
+        
+        // تحميل شجرة الحسابات
+        window.onload = function() {
+            loadAccounts();
+        };
+        
+        // تحميل الحسابات
+        function loadAccounts() {
+            fetch('/api/accounts')
+                .then(response => response.json())
+                .then(data => {
+                    accounts = data.accounts;
+                    displayAccountsTree();
+                    populateParentAccounts();
+                });
+        }
+        
+        // عرض شجرة الحسابات
+        function displayAccountsTree() {
+            const treeDiv = document.getElementById('accountsTree');
+            treeDiv.innerHTML = '';
+            
+            accounts.forEach(mainAccount => {
+                const mainDiv = document.createElement('div');
+                mainDiv.className = 'main-account';
+                mainDiv.innerHTML = `
+                    <div>
+                        <strong>${mainAccount.account_code} - ${mainAccount.account_name}</strong>
+                        <span class="account-type ${mainAccount.account_type}">${getAccountTypeLabel(mainAccount.account_type)}</span>
+                    </div>
+                    <div style="font-weight: bold;">
+                        ${mainAccount.balance.toFixed(2)} جنيه
+                    </div>
+                `;
+                mainDiv.onclick = () => toggleSubAccounts(mainAccount.id);
+                treeDiv.appendChild(mainDiv);
+                
+                // عرض الحسابات الفرعية
+                const subDiv = document.createElement('div');
+                subDiv.className = 'sub-accounts';
+                subDiv.id = `sub-${mainAccount.id}`;
+                
+                if (mainAccount.children && mainAccount.children.length > 0) {
+                    mainAccount.children.forEach(subAccount => {
+                        const subAccountDiv = document.createElement('div');
+                        subAccountDiv.className = 'sub-account';
+                        subAccountDiv.innerHTML = `
+                            <div class="account-info">
+                                <div class="account-code">${subAccount.account_code}</div>
+                                <div class="account-name">${subAccount.account_name}</div>
+                            </div>
+                            <div>
+                                <div class="account-balance ${subAccount.balance < 0 ? 'negative' : ''}">
+                                    ${subAccount.balance.toFixed(2)} جنيه
+                                </div>
+                            </div>
+                            <div class="account-actions">
+                                <button class="btn" onclick="editAccount(${subAccount.id})" title="تعديل">✏️</button>
+                                <button class="btn btn-danger" onclick="deleteAccount(${subAccount.id})" title="حذف">🗑️</button>
+                            </div>
+                        `;
+                        subDiv.appendChild(subAccountDiv);
+                    });
+                } else {
+                    subDiv.innerHTML = '<p style="text-align: center; padding: 20px; color: #999;">لا يوجد حسابات فرعية</p>';
+                }
+                
+                treeDiv.appendChild(subDiv);
+            });
+        }
+        
+        // تبديل عرض/إخفاء الحسابات الفرعية
+        function toggleSubAccounts(accountId) {
+            const subDiv = document.getElementById(`sub-${accountId}`);
+            if (subDiv) {
+                subDiv.style.display = subDiv.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+        
+        // فتح نافذة إضافة حساب
+        function openAddAccountModal() {
+            document.getElementById('addAccountForm').reset();
+            document.getElementById('modalMessage').innerHTML = '';
+            document.getElementById('addAccountModal').style.display = 'flex';
+            populateParentAccounts();
+        }
+        
+        // ملء قائمة الحسابات الرئيسية
+        function populateParentAccounts() {
+            const parentIdSelect = document.getElementById('parentId');
+            parentIdSelect.innerHTML = '<option value="">لا يوجد (حساب رئيسي)</option>';
+            
+            accounts.forEach(mainAccount => {
+                const option = document.createElement('option');
+                option.value = mainAccount.id;
+                option.textContent = `${mainAccount.account_code} - ${mainAccount.account_name}`;
+                parentIdSelect.appendChild(option);
+                
+                // إضافة الحسابات الفرعية
+                if (mainAccount.children) {
+                    mainAccount.children.forEach(subAccount => {
+                        const subOption = document.createElement('option');
+                        subOption.value = subAccount.id;
+                        subOption.textContent = `  └─ ${subAccount.account_code} - ${subAccount.account_name}`;
+                        parentIdSelect.appendChild(subOption);
+                    });
+                }
+            });
+        }
+        
+        // إضافة حساب جديد
+        document.getElementById('addAccountForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const accountData = {
+                account_code: document.getElementById('accountCode').value,
+                account_name: document.getElementById('accountName').value,
+                account_type: document.getElementById('accountType').value,
+                parent_id: document.getElementById('parentId').value || null,
+                description: document.getElementById('accountDescription').value
+            };
+            
+            fetch('/api/accounts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(accountData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageDiv = document.getElementById('modalMessage');
+                if (data.success) {
+                    messageDiv.className = 'message success';
+                    messageDiv.textContent = data.message;
+                    setTimeout(() => {
+                        closeModal('addAccountModal');
+                        loadAccounts();
+                    }, 1500);
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = data.message;
+                }
+            });
+        });
+        
+        // تعديل حساب
+        function editAccount(accountId) {
+            alert('ميزة تعديل الحساب سيتم إضافتها قريباً');
+        }
+        
+        // حذف حساب
+        function deleteAccount(accountId) {
+            if (confirm('هل أنت متأكد من حذف هذا الحساب؟')) {
+                fetch(`/api/accounts/${accountId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const messageDiv = document.getElementById('message');
+                    if (data.success) {
+                        messageDiv.className = 'message success';
+                        messageDiv.textContent = data.message;
+                        setTimeout(() => {
+                            messageDiv.className = '';
+                            messageDiv.textContent = '';
+                        }, 3000);
+                        loadAccounts();
+                    } else {
+                        messageDiv.className = 'message error';
+                        messageDiv.textContent = data.message;
+                    }
+                });
+            }
+        }
+        
+        // إغلاق النافذة
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // الحصول على تسمية نوع الحساب بالعربي
+        function getAccountTypeLabel(type) {
+            const labels = {
+                'asset': 'أصول',
+                'liability': 'خصوم',
+                'equity': 'حقوق ملكية',
+                'revenue': 'إيرادات',
+                'expense': 'مصروفات'
+            };
+            return labels[type] || type;
+        }
+        
+        // إغلاق النافذة عند الضغط خارجها
+        window.onclick = function(event) {
+            const modal = document.getElementById('addAccountModal');
+            if (event.target === modal) {
+                closeModal('addAccountModal');
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدفوعات الموردين - سوبر ماركت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1, h2 {
+            font-size: 28px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+        }
+        
+        .payments-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .payments-table th,
+        .payments-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .payments-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .payments-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 مدفوعات الموردين</h1>
+            <div>
+                <button class="btn" onclick="location.href='/'">← العودة للكاشير</button>
+                <button class="btn btn-primary" onclick="openAddPaymentModal()">+ دفعة جديدة</button>
+            </div>
+        </header>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="location.href='/suppliers'">📦 الموردين</button>
+            <button class="nav-btn info" onclick="location.href='/purchase_orders'">📋 أوامر الشراء</button>
+            <button class="nav-btn warning" onclick="location.href='/supplier_accounts'">📊 حسابات الموردين</button>
+        </div>
+        
+        <div class="content">
+            <h2>📋 سجل المدفوعات</h2>
+            <div id="message"></div>
+            <table class="payments-table" id="paymentsTable">
+                <thead>
+                    <tr>
+                        <th>رقم الدفعة</th>
+                        <th>المورد</th>
+                        <th>المبلغ</th>
+                        <th>طريقة الدفع</th>
+                        <th>التاريخ</th>
+                        <th>ملاحظات</th>
+                        <th>الموظف</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentsBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            جاري تحميل المدفوعات...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Modal إضافة دفعة -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ دفعة جديدة</h2>
+                <button class="close-modal" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
+            <div id="modalMessage"></div>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label>المورد *</label>
+                    <select id="paymentSupplier" required>
+                        <option value="">اختر المورد</option>
+                        <!-- سيتم ملؤه بالجافاسكريبت -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>المبلغ *</label>
+                    <input type="number" id="paymentAmount" step="0.01" required min="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label>طريقة الدفع *</label>
+                    <select id="paymentMethod" required>
+                        <option value="cash">كاش</option>
+                        <option value="bank_transfer">تحويل بنكي</option>
+                        <option value="check">شيك</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>ملاحظات</label>
+                    <textarea id="paymentNotes" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">
+                    تسجيل الدفعة
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let payments = [];
+        let suppliers = [];
+        
+        // تحميل المدفوعات عند فتح الصفحة
+        window.onload = function() {
+            loadPayments();
+            loadSuppliersForPayment();
+        };
+        
+        // تحميل المدفوعات
+        function loadPayments() {
+            fetch('/api/supplier_payments')
+                .then(response => response.json())
+                .then(data => {
+                    payments = data.payments;
+                    displayPayments();
+                });
+        }
+        
+        // عرض المدفوعات
+        function displayPayments() {
+            const tbody = document.getElementById('paymentsBody');
+            tbody.innerHTML = '';
+            
+            if (payments.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            لا يوجد مدفوعات
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            payments.forEach(payment => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${payment.payment_number}</strong></td>
+                    <td>${payment.supplier_name}</td>
+                    <td style="color: #27ae60; font-weight: bold;">${payment.amount.toFixed(2)} جنيه</td>
+                    <td>
+                        ${payment.payment_method === 'cash' ? 'كاش' : 
+                          payment.payment_method === 'bank_transfer' ? 'تحويل بنكي' : 'شيك'}
+                    </td>
+                    <td>${payment.payment_date}</td>
+                    <td>${payment.notes || '-'}</td>
+                    <td>${payment.created_by_name}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تحميل الموردين لقائمة الدفع
+        function loadSuppliersForPayment() {
+            fetch('/api/suppliers')
+                .then(response => response.json())
+                .then(data => {
+                    suppliers = data.suppliers;
+                    populateSuppliersForPayment();
+                });
+        }
+        
+        // ملء قائمة الموردين
+        function populateSuppliersForPayment() {
+            const select = document.getElementById('paymentSupplier');
+            select.innerHTML = '<option value="">اختر المورد</option>';
+            
+            suppliers.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier.id;
+                option.textContent = `${supplier.name} - ${supplier.phone} (الرصيد: ${Math.abs(supplier.account_balance).toFixed(2)} جنيه)`;
+                select.appendChild(option);
+            });
+        }
+        
+        // فتح نافذة إضافة دفعة
+        function openAddPaymentModal() {
+            document.getElementById('paymentForm').reset();
+            document.getElementById('modalMessage').innerHTML = '';
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+        
+        // إغلاق النافذة
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // تسجيل دفعة جديدة
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const supplierId = document.getElementById('paymentSupplier').value;
+            const supplierName = document.getElementById('paymentSupplier').options[document.getElementById('paymentSupplier').selectedIndex].text.split(' - ')[0];
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const notes = document.getElementById('paymentNotes').value;
+            
+            if (!supplierId) {
+                alert('يرجى اختيار المورد');
+                return;
+            }
+            
+            const paymentData = {
+                supplier_id: supplierId,
+                supplier_name: supplierName,
+                amount: amount,
+                payment_method: paymentMethod,
+                notes: notes
+            };
+            
+            fetch('/api/supplier_payments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageDiv = document.getElementById('modalMessage');
+                if (data.success) {
+                    messageDiv.className = 'message success';
+                    messageDiv.textContent = data.message;
+                    setTimeout(() => {
+                        closeModal('paymentModal');
+                        loadPayments();
+                    }, 1500);
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = data.message;
+                }
+            });
+        });
+        
+        // إغلاق النافذة عند الضغط خارجها
+        window.onclick = function(event) {
+            const modal = document.getElementById('paymentModal');
+            if (event.target === modal) {
+                closeModal('paymentModal');
+            }
+        };
+    </script>
+</body>
+</html>

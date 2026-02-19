@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حسابات الموردين - سوبر ماركت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1, h2 {
+            font-size: 28px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+        }
+        
+        .supplier-select {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .supplier-select label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .supplier-select select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .account-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .account-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .balance-negative {
+            color: #e74c3c;
+        }
+        
+        .balance-positive {
+            color: #27ae60;
+        }
+        
+        .transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .transactions-table th,
+        .transactions-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .transactions-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .transactions-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .debit {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .credit {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 حسابات الموردين</h1>
+            <button class="btn" onclick="location.href='/'">← العودة للكاشير</button>
+        </header>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="location.href='/suppliers'">📦 الموردين</button>
+            <button class="nav-btn info" onclick="location.href='/purchase_orders'">📋 أوامر الشراء</button>
+            <button class="nav-btn warning" onclick="location.href='/supplier_payments'">💰 مدفوعات الموردين</button>
+        </div>
+        
+        <div class="content">
+            <h2>📋 كشف حساب المورد</h2>
+            
+            <div class="supplier-select">
+                <label>اختر المورد:</label>
+                <select id="supplierSelect" onchange="loadSupplierAccount()">
+                    <option value="">اختر المورد...</option>
+                    <!-- سيتم ملؤه بالجافاسكريبت -->
+                </select>
+            </div>
+            
+            <div id="message"></div>
+            
+            <div id="accountSection" style="display: none;">
+                <div class="account-header">
+                    <div class="account-info">
+                        <div class="info-item">
+                            <div class="info-label">اسم المورد</div>
+                            <div class="info-value" id="supplierName">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">الهاتف</div>
+                            <div class="info-value" id="supplierPhone">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">الرصيد الحالي</div>
+                            <div class="info-value balance-negative" id="supplierBalance">0.00</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 30px 0 20px 0;">📋 كشف الحساب</h3>
+                <table class="transactions-table" id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>النوع</th>
+                            <th>المرجع</th>
+                            <th>البيان</th>
+                            <th>مدين</th>
+                            <th>دائن</th>
+                            <th>الرصيد</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px;">
+                                اختر مورداً لعرض كشف الحساب
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let suppliers = [];
+        
+        // تحميل الموردين عند فتح الصفحة
+        window.onload = function() {
+            loadSuppliers();
+        };
+        
+        // تحميل الموردين
+        function loadSuppliers() {
+            fetch('/api/suppliers')
+                .then(response => response.json())
+                .then(data => {
+                    suppliers = data.suppliers;
+                    populateSupplierDropdown();
+                });
+        }
+        
+        // ملء قائمة الموردين
+        function populateSupplierDropdown() {
+            const select = document.getElementById('supplierSelect');
+            select.innerHTML = '<option value="">اختر المورد...</option>';
+            
+            suppliers.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier.id;
+                option.textContent = `${supplier.name} - ${supplier.phone}`;
+                select.appendChild(option);
+            });
+        }
+        
+        // تحميل كشف حساب المورد
+        function loadSupplierAccount() {
+            const supplierId = document.getElementById('supplierSelect').value;
+            
+            if (!supplierId) {
+                document.getElementById('accountSection').style.display = 'none';
+                return;
+            }
+            
+            fetch(`/api/supplier_accounts/${supplierId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displaySupplierAccount(data);
+                    }
+                });
+        }
+        
+        // عرض كشف حساب المورد
+        function displaySupplierAccount(data) {
+            // عرض معلومات المورد
+            document.getElementById('supplierName').textContent = data.supplier.name;
+            document.getElementById('supplierPhone').textContent = data.supplier.phone;
+            
+            const balanceElement = document.getElementById('supplierBalance');
+            balanceElement.textContent = Math.abs(data.supplier.balance).toFixed(2) + ' جنيه';
+            
+            // تحديد لون الرصيد
+            if (data.supplier.balance > 0) {
+                balanceElement.className = 'info-value balance-negative';
+            } else {
+                balanceElement.className = 'info-value balance-positive';
+            }
+            
+            // عرض المعاملات
+            const tbody = document.getElementById('transactionsBody');
+            tbody.innerHTML = '';
+            
+            if (data.transactions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            لا يوجد معاملات
+                        </td>
+                    </tr>
+                `;
+            } else {
+                data.transactions.forEach(transaction => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${transaction.date}</td>
+                        <td>
+                            ${transaction.transaction_type === 'purchase' ? 'شراء' : 
+                              transaction.transaction_type === 'payment' ? 'دفعة' : 'مرتجع'}
+                        </td>
+                        <td>${transaction.reference_number || '-'}</td>
+                        <td>${transaction.notes || '-'}</td>
+                        <td class="debit">${transaction.debit > 0 ? transaction.debit.toFixed(2) : '-'}</td>
+                        <td class="credit">${transaction.credit > 0 ? transaction.credit.toFixed(2) : '-'}</td>
+                        <td class="${transaction.balance > 0 ? 'debit' : 'credit'}">
+                            ${Math.abs(transaction.balance).toFixed(2)}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            
+            // إظهار قسم الحساب
+            document.getElementById('accountSection').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أوامر الشراء - سوبر ماركت</title>
+    <style>
+        /* نفس الـ CSS من suppliers.html */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+        }
+        
+        .po-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .po-table th,
+        .po-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .po-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .po-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .status-pending {
+            background: #f39c12;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .status-received {
+            background: #27ae60;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 60px;
+            gap: 10px;
+            margin-top: 15px;
+            align-items: center;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 أوامر الشراء</h1>
+            <div>
+                <button class="btn" onclick="location.href='/'">← العودة للكاشير</button>
+                <button class="btn btn-primary" onclick="openAddPOrderModal()">+ أمر شراء جديد</button>
+            </div>
+        </header>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="location.href='/suppliers'">📦 الموردين</button>
+            <button class="nav-btn info" onclick="location.href='/supplier_payments'">💰 مدفوعات الموردين</button>
+            <button class="nav-btn warning" onclick="location.href='/supplier_accounts'">📊 حسابات الموردين</button>
+        </div>
+        
+        <div class="content">
+            <h2>📋 قائمة أوامر الشراء</h2>
+            <div id="message"></div>
+            <table class="po-table" id="poTable">
+                <thead>
+                    <tr>
+                        <th>رقم الأمر</th>
+                        <th>المورد</th>
+                        <th>الإجمالي</th>
+                        <th>الخصم</th>
+                        <th>الصافي</th>
+                        <th>الحالة</th>
+                        <th>تاريخ الطلب</th>
+                        <th>تاريخ الاستلام</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="poBody">
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px;">
+                            جاري تحميل أوامر الشراء...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Modal إضافة أمر شراء -->
+    <div class="modal" id="poModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ أمر شراء جديد</h2>
+                <button class="close-modal" onclick="closeModal('poModal')">&times;</button>
+            </div>
+            <div id="modalMessage"></div>
+            <form id="poForm">
+                <div class="form-group">
+                    <label>المورد *</label>
+                    <select id="poSupplier" required>
+                        <option value="">اختر المورد</option>
+                        <!-- سيتم ملؤه بالجافاسكريبت -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>تاريخ الاستلام المتوقع</label>
+                    <input type="date" id="poExpectedDate">
+                </div>
+                
+                <div class="form-group">
+                    <label>ملاحظات</label>
+                    <textarea id="poNotes" rows="3"></textarea>
+                </div>
+                
+                <h3 style="margin: 20px 0 10px 0;">📦 المنتجات</h3>
+                <div class="items-grid">
+                    <div><strong>المنتج</strong></div>
+                    <div><strong>الكمية</strong></div>
+                    <div><strong>سعر التكلفة</strong></div>
+                    <div><strong>سعر البيع</strong></div>
+                    <div><strong>الإجمالي</strong></div>
+                    <div></div>
+                </div>
+                
+                <div id="poItemsContainer">
+                    <!-- سيتم ملؤه بالجافاسكريبت -->
+                </div>
+                
+                <button type="button" class="btn btn-info" onclick="addPOItem()" style="margin: 10px 0;">
+                    + إضافة منتج
+                </button>
+                
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <div class="form-group">
+                        <label>الخصم</label>
+                        <input type="number" id="poDiscount" step="0.01" value="0" oninput="calculateTotal()">
+                    </div>
+                    
+                    <div style="font-size: 20px; font-weight: bold; color: #667eea; text-align: left;">
+                        الإجمالي: <span id="poTotal">0.00</span> جنيه
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">
+                    إنشاء أمر الشراء
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let purchaseOrders = [];
+        let suppliers = [];
+        let poItems = [];
+        
+        // تحميل أوامر الشراء عند فتح الصفحة
+        window.onload = function() {
+            loadPurchaseOrders();
+            loadSuppliersForPO();
+        };
+        
+        // تحميل أوامر الشراء
+        function loadPurchaseOrders() {
+            fetch('/api/purchase_orders')
+                .then(response => response.json())
+                .then(data => {
+                    purchaseOrders = data.purchase_orders;
+                    displayPurchaseOrders();
+                });
+        }
+        
+        // عرض أوامر الشراء
+        function displayPurchaseOrders() {
+            const tbody = document.getElementById('poBody');
+            tbody.innerHTML = '';
+            
+            if (purchaseOrders.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px;">
+                            لا يوجد أوامر شراء
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            purchaseOrders.forEach(po => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${po.po_number}</strong></td>
+                    <td>${po.supplier_name}</td>
+                    <td>${po.total_amount.toFixed(2)} جنيه</td>
+                    <td>${po.discount.toFixed(2)} جنيه</td>
+                    <td>${po.final_amount.toFixed(2)} جنيه</td>
+                    <td>
+                        <span class="status-${po.status}">
+                            ${po.status === 'pending' ? 'قيد الانتظار' : 'تم الاستلام'}
+                        </span>
+                    </td>
+                    <td>${po.order_date}</td>
+                    <td>${po.received_date || '-'}</td>
+                    <td>
+                        ${po.status === 'pending' ? 
+                            `<button class="btn btn-warning" onclick="receivePO(${po.id})">استلام</button>` : 
+                            '<span style="color: green;">✓ تم</span>'
+                        }
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تحميل الموردين لقائمة الاختيار
+        function loadSuppliersForPO() {
+            fetch('/api/suppliers')
+                .then(response => response.json())
+                .then(data => {
+                    suppliers = data.suppliers;
+                    populateSuppliersDropdown();
+                });
+        }
+        
+        // ملء قائمة الموردين
+        function populateSuppliersDropdown() {
+            const select = document.getElementById('poSupplier');
+            select.innerHTML = '<option value="">اختر المورد</option>';
+            
+            suppliers.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier.id;
+                option.textContent = `${supplier.name} - ${supplier.phone}`;
+                select.appendChild(option);
+            });
+        }
+        
+        // فتح نافذة إضافة أمر شراء
+        function openAddPOrderModal() {
+            document.getElementById('poForm').reset();
+            document.getElementById('poItemsContainer').innerHTML = '';
+            document.getElementById('modalMessage').innerHTML = '';
+            poItems = [];
+            addPOItem(); // إضافة سطر فارغ واحد
+            document.getElementById('poModal').style.display = 'flex';
+        }
+        
+        // إغلاق النافذة
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // إضافة سطر منتج
+        function addPOItem() {
+            const container = document.getElementById('poItemsContainer');
+            const index = poItems.length;
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'items-grid';
+            itemDiv.innerHTML = `
+                <div>
+                    <input type="text" class="product-name" placeholder="اسم المنتج" 
+                           oninput="updateItemTotal(${index})" required>
+                </div>
+                <div>
+                    <input type="number" class="product-quantity" placeholder="0" min="1" 
+                           value="1" oninput="updateItemTotal(${index})" required>
+                </div>
+                <div>
+                    <input type="number" class="product-cost" placeholder="0.00" step="0.01" 
+                           value="0" oninput="updateItemTotal(${index})" required>
+                </div>
+                <div>
+                    <input type="number" class="product-price" placeholder="0.00" step="0.01" 
+                           value="0" oninput="updateItemTotal(${index})">
+                </div>
+                <div>
+                    <span class="item-total">0.00</span> جنيه
+                </div>
+                <div>
+                    <button type="button" class="btn btn-danger" onclick="removePOItem(this)" style="padding: 5px 10px; font-size: 14px;">
+                        ✕
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(itemDiv);
+            
+            // إضافة عنصر فارغ للمصفوفة
+            poItems.push({
+                product_name: '',
+                quantity: 1,
+                cost_price: 0,
+                selling_price: 0,
+                subtotal: 0
+            });
+        }
+        
+        // إزالة سطر منتج
+        function removePOItem(button) {
+            const itemDiv = button.closest('.items-grid');
+            const index = Array.from(itemDiv.parentElement.children).indexOf(itemDiv);
+            
+            itemDiv.remove();
+            poItems.splice(index, 1);
+            calculateTotal();
+        }
+        
+        // تحديث إجمالي المنتج
+        function updateItemTotal(index) {
+            const container = document.getElementById('poItemsContainer');
+            const items = container.querySelectorAll('.items-grid');
+            
+            if (index < items.length) {
+                const item = items[index];
+                const name = item.querySelector('.product-name').value;
+                const qty = parseFloat(item.querySelector('.product-quantity').value) || 0;
+                const cost = parseFloat(item.querySelector('.product-cost').value) || 0;
+                const price = parseFloat(item.querySelector('.product-price').value) || 0;
+                
+                const subtotal = qty * cost;
+                
+                item.querySelector('.item-total').textContent = subtotal.toFixed(2);
+                
+                // تحديث المصفوفة
+                poItems[index] = {
+                    product_name: name,
+                    quantity: qty,
+                    cost_price: cost,
+                    selling_price: price,
+                    subtotal: subtotal
+                };
+                
+                calculateTotal();
+            }
+        }
+        
+        // حساب الإجمالي
+        function calculateTotal() {
+            const total = poItems.reduce((sum, item) => sum + item.subtotal, 0);
+            const discount = parseFloat(document.getElementById('poDiscount').value) || 0;
+            const finalTotal = total - discount;
+            
+            document.getElementById('poTotal').textContent = finalTotal.toFixed(2);
+        }
+        
+        // إنشاء أمر شراء
+        document.getElementById('poForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const supplierId = document.getElementById('poSupplier').value;
+            const supplierName = document.getElementById('poSupplier').options[document.getElementById('poSupplier').selectedIndex].text;
+            const discount = parseFloat(document.getElementById('poDiscount').value) || 0;
+            const expectedDate = document.getElementById('poExpectedDate').value;
+            const notes = document.getElementById('poNotes').value;
+            
+            if (!supplierId) {
+                alert('يرجى اختيار المورد');
+                return;
+            }
+            
+            // التحقق من وجود منتجات
+            const validItems = poItems.filter(item => item.product_name && item.quantity > 0 && item.cost_price > 0);
+            
+            if (validItems.length === 0) {
+                alert('يرجى إضافة منتجات');
+                return;
+            }
+            
+            const poData = {
+                supplier_id: supplierId,
+                supplier_name: supplierName.split(' - ')[0],
+                items: validItems,
+                discount: discount,
+                expected_date: expectedDate,
+                notes: notes
+            };
+            
+            fetch('/api/purchase_orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(poData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageDiv = document.getElementById('modalMessage');
+                if (data.success) {
+                    messageDiv.className = 'message success';
+                    messageDiv.textContent = data.message;
+                    setTimeout(() => {
+                        closeModal('poModal');
+                        loadPurchaseOrders();
+                    }, 1500);
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = data.message;
+                }
+            });
+        });
+        
+        // استلام أمر شراء
+        function receivePO(poId) {
+            if (confirm('هل أنت متأكد من استلام هذا الطلب؟')) {
+                fetch(`/api/purchase_orders/${poId}/receive`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const messageDiv = document.getElementById('message');
+                    if (data.success) {
+                        messageDiv.className = 'message success';
+                        messageDiv.textContent = data.message;
+                        setTimeout(() => {
+                            messageDiv.className = '';
+                            messageDiv.textContent = '';
+                        }, 3000);
+                        loadPurchaseOrders();
+                    }
+                });
+            }
+        }
+        
+        // إغلاق النافذة عند الضغط خارجها
+        window.onclick = function(event) {
+            const modal = document.getElementById('poModal');
+            if (event.target === modal) {
+                closeModal('poModal');
+            }
+        };
+    </script>
+</body>
+</html>

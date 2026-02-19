@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير المالية - سوبر ماركت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1, h2 {
+            font-size: 28px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-print {
+            background: #9b59b6;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #999;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .report-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card.green {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        }
+        
+        .stat-card.blue {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+        
+        .stat-card.orange {
+            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+        }
+        
+        .stat-card.red {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .report-table th,
+        .report-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .report-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .report-table tr.total-row {
+            background: #f9f9f9;
+            font-weight: bold;
+        }
+        
+        .report-table tr.total-row td {
+            border-top: 2px solid #667eea;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .positive {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .negative {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        @media print {
+            .btn, header, .tabs, .report-filters {
+                display: none !important;
+            }
+            
+            .content {
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 التقارير المالية</h1>
+            <button class="btn" onclick="location.href='/'">← العودة للكاشير</button>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('income')">📊 قائمة الدخل</button>
+            <button class="tab" onclick="switchTab('balance')">📋 الميزانية العمومية</button>
+        </div>
+        
+        <!-- قائمة الدخل -->
+        <div id="income" class="tab-content active">
+            <div class="content">
+                <h2>📊 قائمة الدخل (بيان الربح والخسارة)</h2>
+                
+                <div class="report-filters">
+                    <div class="filter-group">
+                        <label>نوع التقرير</label>
+                        <select id="incomeReportType" onchange="updateIncomeDateFields()">
+                            <option value="daily">يومي</option>
+                            <option value="weekly">أسبوعي</option>
+                            <option value="monthly" selected>شهري</option>
+                            <option value="custom">مخصص</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group" id="incomeStartDateGroup" style="display: none;">
+                        <label>من تاريخ</label>
+                        <input type="date" id="incomeStartDate">
+                    </div>
+                    
+                    <div class="filter-group" id="incomeEndDateGroup" style="display: none;">
+                        <label>إلى تاريخ</label>
+                        <input type="date" id="incomeEndDate">
+                    </div>
+                    
+                    <div class="filter-group" style="align-self: flex-end;">
+                        <button class="btn btn-primary" onclick="generateIncomeStatement()" style="width: 100%;">
+                            📋 عرض التقرير
+                        </button>
+                        <button class="btn btn-print" onclick="printIncomeStatement()" style="width: 100%; margin-top: 10px;">
+                            🖨️ طباعة
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">الإيرادات</div>
+                        <div class="stat-value" id="revenue">0.00</div>
+                        <div class="stat-label">جنيه</div>
+                    </div>
+                    
+                    <div class="stat-card orange">
+                        <div class="stat-label">تكلفة البضاعة</div>
+                        <div class="stat-value" id="cogs">0.00</div>
+                        <div class="stat-label">جنيه</div>
+                    </div>
+                    
+                    <div class="stat-card green">
+                        <div class="stat-label">الربح الإجمالي</div>
+                        <div class="stat-value" id="grossProfit">0.00</div>
+                        <div class="stat-label">جنيه</div>
+                    </div>
+                    
+                    <div class="stat-card blue">
+                        <div class="stat-label">المصروفات</div>
+                        <div class="stat-value" id="expenses">0.00</div>
+                        <div class="stat-label">جنيه</div>
+                    </div>
+                    
+                    <div class="stat-card" style="grid-column: span 2;">
+                        <div class="stat-label">صافي الربح</div>
+                        <div class="stat-value" id="netProfit">0.00</div>
+                        <div class="stat-label">جنيه</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 30px 0 20px 0;">📋 تفصيل المصروفات</h3>
+                <table class="report-table" id="expensesTable">
+                    <thead>
+                        <tr>
+                            <th>الحساب</th>
+                            <th>المبلغ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expensesBody">
+                        <tr>
+                            <td colspan="2" style="text-align: center; padding: 40px;">
+                                اضغط على "عرض التقرير" لعرض البيانات
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- الميزانية العمومية -->
+        <div id="balance" class="tab-content">
+            <div class="content">
+                <h2>📋 الميزانية العمومية</h2>
+                
+                <button class="btn btn-primary" onclick="loadBalanceSheet()" style="margin-bottom: 20px;">
+                    🔄 تحديث التقرير
+                </button>
+                <button class="btn btn-print" onclick="printBalanceSheet()" style="margin-bottom: 20px;">
+                    🖨️ طباعة
+                </button>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <!-- الأصول -->
+                    <div>
+                        <h3 style="color: #667eea; margin-bottom: 15px;">💰 الأصول</h3>
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>الحساب</th>
+                                    <th>الرصيد</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assetsBody">
+                                <tr>
+                                    <td colspan="2" style="text-align: center; padding: 40px;">
+                                        جاري التحميل...
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td><strong>إجمالي الأصول</strong></td>
+                                    <td id="totalAssets">0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <!-- الخصوم وحقوق الملكية -->
+                    <div>
+                        <h3 style="color: #e74c3c; margin-bottom: 15px;">💳 الخصوم</h3>
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>الحساب</th>
+                                    <th>الرصيد</th>
+                                </tr>
+                            </thead>
+                            <tbody id="liabilitiesBody">
+                                <tr>
+                                    <td colspan="2" style="text-align: center; padding: 40px;">
+                                        جاري التحميل...
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td><strong>إجمالي الخصوم</strong></td>
+                                    <td id="totalLiabilities">0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        
+                        <h3 style="color: #9b59b6; margin: 30px 0 15px 0;">📊 حقوق الملكية</h3>
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>الحساب</th>
+                                    <th>الرصيد</th>
+                                </tr>
+                            </thead>
+                            <tbody id="equityBody">
+                                <tr>
+                                    <td colspan="2" style="text-align: center; padding: 40px;">
+                                        جاري التحميل...
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td><strong>إجمالي حقوق الملكية</strong></td>
+                                    <td id="totalEquity">0.00</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td><strong>إجمالي الخصوم وحقوق الملكية</strong></td>
+                                    <td id="totalLiabilitiesEquity">0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentReportData = null;
+        let currentReportType = 'income';
+        
+        // التبديل بين التبويبات
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            currentReportType = tabName;
+            
+            if (tabName === 'balance') {
+                loadBalanceSheet();
+            }
+        }
+        
+        // تحديث حقول التاريخ
+        function updateIncomeDateFields() {
+            const reportType = document.getElementById('incomeReportType').value;
+            const startDateGroup = document.getElementById('incomeStartDateGroup');
+            const endDateGroup = document.getElementById('incomeEndDateGroup');
+            
+            if (reportType === 'custom') {
+                startDateGroup.style.display = 'block';
+                endDateGroup.style.display = 'block';
+                
+                const today = new Date().toISOString().split('T')[0];
+                const monthAgo = new Date();
+                monthAgo.setDate(monthAgo.getDate() - 30);
+                document.getElementById('incomeStartDate').value = monthAgo.toISOString().split('T')[0];
+                document.getElementById('incomeEndDate').value = today;
+            } else {
+                startDateGroup.style.display = 'none';
+                endDateGroup.style.display = 'none';
+            }
+        }
+        
+        // توليد قائمة الدخل
+        function generateIncomeStatement() {
+            const reportType = document.getElementById('incomeReportType').value;
+            const startDate = document.getElementById('incomeStartDate').value;
+            const endDate = document.getElementById('incomeEndDate').value;
+            
+            const reportData = { type: reportType };
+            
+            if (reportType === 'custom') {
+                if (!startDate || !endDate) {
+                    alert('يرجى تحديد الفترة الزمنية');
+                    return;
+                }
+                reportData.start_date = startDate;
+                reportData.end_date = endDate;
+            }
+            
+            fetch('/api/reports/income_statement', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(reportData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentReportData = data;
+                    displayIncomeStatement(data);
+                }
+            });
+        }
+        
+        // عرض قائمة الدخل
+        function displayIncomeStatement(data) {
+            document.getElementById('revenue').textContent = data.revenue.toFixed(2);
+            document.getElementById('cogs').textContent = data.cogs.toFixed(2);
+            document.getElementById('grossProfit').textContent = data.gross_profit.toFixed(2);
+            document.getElementById('expenses').textContent = data.expenses.toFixed(2);
+            document.getElementById('netProfit').textContent = data.net_profit.toFixed(2);
+            
+            const expensesBody = document.getElementById('expensesBody');
+            expensesBody.innerHTML = '';
+            
+            if (data.expenses_details.length === 0) {
+                expensesBody.innerHTML = `
+                    <tr>
+                        <td colspan="2" style="text-align: center; padding: 40px;">
+                            لا يوجد بيانات
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            data.expenses_details.forEach(expense => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${expense.account_name}</td>
+                    <td>${expense.amount.toFixed(2)}</td>
+                `;
+                expensesBody.appendChild(row);
+            });
+            
+            // إضافة إجمالي المصروفات
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'total-row';
+            totalRow.innerHTML = `
+                <td><strong>الإجمالي</strong></td>
+                <td><strong>${data.expenses.toFixed(2)}</strong></td>
+            `;
+            expensesBody.appendChild(totalRow);
+        }
+        
+        // طباعة قائمة الدخل
+        function printIncomeStatement() {
+            if (!currentReportData) {
+                alert('يرجى عرض التقرير أولاً');
+                return;
+            }
+            window.print();
+        }
+        
+        // تحميل الميزانية العمومية
+        function loadBalanceSheet() {
+            fetch('/api/reports/balance_sheet')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayBalanceSheet(data);
+                    }
+                });
+        }
+        
+        // عرض الميزانية العمومية
+        function displayBalanceSheet(data) {
+            // الأصول
+            const assetsBody = document.getElementById('assetsBody');
+            assetsBody.innerHTML = '';
+            
+            if (data.assets.length === 0) {
+                assetsBody.innerHTML = `
+                    <tr>
+                        <td colspan="2" style="text-align: center; padding: 40px;">
+                            لا يوجد بيانات
+                        </td>
+                    </tr>
+                `;
+            } else {
+                data.assets.forEach(asset => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${asset.account_name}</td>
+                        <td>${asset.balance.toFixed(2)}</td>
+                    `;
+                    assetsBody.appendChild(row);
+                });
+            }
+            
+            document.getElementById('totalAssets').textContent = data.total_assets.toFixed(2);
+            
+            // الخصوم
+            const liabilitiesBody = document.getElementById('liabilitiesBody');
+            liabilitiesBody.innerHTML = '';
+            
+            if (data.liabilities.length === 0) {
+                liabilitiesBody.innerHTML = `
+                    <tr>
+                        <td colspan="2" style="text-align: center; padding: 40px;">
+                            لا يوجد بيانات
+                        </td>
+                    </tr>
+                `;
+            } else {
+                data.liabilities.forEach(liability => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${liability.account_name}</td>
+                        <td>${liability.balance.toFixed(2)}</td>
+                    `;
+                    liabilitiesBody.appendChild(row);
+                });
+            }
+            
+            document.getElementById('totalLiabilities').textContent = data.total_liabilities.toFixed(2);
+            
+            // حقوق الملكية
+            const equityBody = document.getElementById('equityBody');
+            equityBody.innerHTML = '';
+            
+            if (data.equity.length === 0) {
+                equityBody.innerHTML = `
+                    <tr>
+                        <td colspan="2" style="text-align: center; padding: 40px;">
+                            لا يوجد بيانات
+                        </td>
+                    </tr>
+                `;
+            } else {
+                data.equity.forEach(equity => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${equity.account_name}</td>
+                        <td>${equity.balance.toFixed(2)}</td>
+                    `;
+                    equityBody.appendChild(row);
+                });
+            }
+            
+            document.getElementById('totalEquity').textContent = data.total_equity.toFixed(2);
+            document.getElementById('totalLiabilitiesEquity').textContent = data.total_liabilities_equity.toFixed(2);
+        }
+        
+        // طباعة الميزانية العمومية
+        function printBalanceSheet() {
+            window.print();
+        }
+    </script>
+</body>
+</html>

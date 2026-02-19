@@ -1,0 +1,965 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير - سوبر ماركت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1, h2 {
+            font-size: 28px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-print {
+            background: #9b59b6;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .report-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card.green {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        }
+        
+        .stat-card.blue {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+        
+        .stat-card.orange {
+            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        table th,
+        table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #999;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
+        @media print {
+            .btn, header, .tabs, .report-filters, .no-print {
+                display: none !important;
+            }
+            
+            .content {
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            table th,
+            table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 التقارير</h1>
+            <button class="btn" onclick="location.href='/'">← العودة للكاشير</button>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('sales')">📈 تقرير المبيعات</button>
+            <button class="tab" onclick="switchTab('stock')">📦 تقرير المخزون</button>
+        </div>
+        
+        <!-- تقرير المبيعات -->
+        <div id="sales" class="tab-content active">
+            <div class="content">
+                <h2>📈 تقرير المبيعات</h2>
+                
+                <div class="report-filters">
+                    <div class="filter-group">
+                        <label>نوع التقرير</label>
+                        <select id="reportType" onchange="updateDateFields()">
+                            <option value="daily">يومي</option>
+                            <option value="weekly">أسبوعي</option>
+                            <option value="monthly">شهري</option>
+                            <option value="custom">مخصص</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group" id="startDateGroup" style="display: none;">
+                        <label>من تاريخ</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    
+                    <div class="filter-group" id="endDateGroup" style="display: none;">
+                        <label>إلى تاريخ</label>
+                        <input type="date" id="endDate">
+                    </div>
+                    
+                    <div class="filter-group" style="align-self: flex-end;">
+                        <button class="btn btn-primary" onclick="generateSalesReport()" style="width: 100%;">
+                            📋 عرض التقرير
+                        </button>
+                        <button class="btn btn-print" onclick="printSalesReport()" style="width: 100%; margin-top: 10px;">
+                            🖨️ طباعة تقرير المبيعات
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="message"></div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">إجمالي المبيعات</div>
+                        <div class="stat-value" id="totalSales">0.00</div>
+                        <div class="stat-label">جنيه</div>
+                    </div>
+                    
+                    <div class="stat-card green">
+                        <div class="stat-label">عدد الفواتير</div>
+                        <div class="stat-value" id="totalInvoices">0</div>
+                    </div>
+                    
+                    <div class="stat-card blue">
+                        <div class="stat-label">متوسط الفاتورة</div>
+                        <div class="stat-value" id="avgInvoice">0.00</div>
+                        <div class="stat-label">جنيه</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 20px 0;">📋 الفواتير</h3>
+                <div class="table-container">
+                    <table id="invoicesTable">
+                        <thead>
+                            <tr>
+                                <th>رقم الفاتورة</th>
+                                <th>الإجمالي</th>
+                                <th>طريقة الدفع</th>
+                                <th>الكاشير</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px;">
+                                    اضغط على "عرض التقرير" لعرض البيانات
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3 style="margin: 30px 0 20px 0;">🏆 المنتجات الأعلى مبيعاً</h3>
+                <div class="table-container">
+                    <table id="topProductsTable">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>الكمية المباعة</th>
+                                <th>الإيرادات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topProductsBody">
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: 40px;">
+                                    سيتم عرض المنتجات الأعلى مبيعاً عند عرض التقرير
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- تقرير المخزون -->
+        <div id="stock" class="tab-content">
+            <div class="content">
+                <h2>📦 تقرير المخزون</h2>
+                
+                <button class="btn btn-primary" onclick="loadStockReport()" style="margin-bottom: 20px;">
+                    🔄 تحديث التقرير
+                </button>
+                <button class="btn btn-print" onclick="printStockReport()" style="margin-bottom: 20px;">
+                    🖨️ طباعة تقرير المخزون
+                </button>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">إجمالي المنتجات</div>
+                        <div class="stat-value" id="stockTotalProducts">0</div>
+                    </div>
+                    
+                    <div class="stat-card orange">
+                        <div class="stat-label">إجمالي الكمية</div>
+                        <div class="stat-value" id="stockTotalQuantity">0</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">منخفض المخزون</div>
+                        <div class="stat-value" id="stockLowStock">0</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">نفذ المخزون</div>
+                        <div class="stat-value" id="stockOutOfStock">0</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 30px 0 20px 0;">⚠️ المنتجات منخفضة المخزون</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>الكمية المتاحة</th>
+                                <th>الحد الأدنى</th>
+                                <th>التصنيف</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lowStockBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 40px;">
+                                    جاري التحميل...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3 style="margin: 30px 0 20px 0;">❌ المنتجات التي نفذت</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>التصنيف</th>
+                            </tr>
+                        </thead>
+                        <tbody id="outOfStockBody">
+                            <tr>
+                                <td colspan="2" style="text-align: center; padding: 40px;">
+                                    جاري التحميل...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- منطقة الطباعة لتقرير المبيعات -->
+    <div id="printSalesArea" style="display: none;">
+        <div style="text-align: center; padding: 20px; background: white;">
+            <h1 style="color: #667eea; margin-bottom: 10px;">📈 تقرير المبيعات</h1>
+            <p style="font-size: 16px; color: #666;">
+                تاريخ الطباعة: <span id="printSalesDate"></span>
+            </p>
+            <p style="font-size: 16px; color: #666;">
+                الفترة: <span id="printSalesPeriod"></span>
+            </p>
+        </div>
+        
+        <div style="margin: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; background: white;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        <strong>إجمالي المبيعات:</strong>
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">
+                        <span id="printSalesTotal" style="color: #e74c3c; font-size: 20px; font-weight: bold;">0.00</span> جنيه
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        <strong>عدد الفواتير:</strong>
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">
+                        <span id="printSalesCount" style="font-size: 18px; font-weight: bold;">0</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        <strong>متوسط الفاتورة:</strong>
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">
+                        <span id="printSalesAvg" style="color: #27ae60; font-size: 18px; font-weight: bold;">0.00</span> جنيه
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="margin: 20px; background: white;">
+            <h3 style="margin-bottom: 15px; color: #667eea;">📋 تفاصيل الفواتير</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #000; padding: 10px; background: #667eea; color: white;">رقم الفاتورة</th>
+                        <th style="border: 1px solid #000; padding: 10px; background: #667eea; color: white;">الإجمالي</th>
+                        <th style="border: 1px solid #000; padding: 10px; background: #667eea; color: white;">طريقة الدفع</th>
+                        <th style="border: 1px solid #000; padding: 10px; background: #667eea; color: white;">الكاشير</th>
+                        <th style="border: 1px solid #000; padding: 10px; background: #667eea; color: white;">التاريخ</th>
+                    </tr>
+                </thead>
+                <tbody id="printSalesTableBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin: 20px; background: white;">
+            <h3 style="margin-bottom: 15px; color: #667eea;">🏆 المنتجات الأعلى مبيعاً</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #000; padding: 10px; background: #27ae60; color: white;">المنتج</th>
+                        <th style="border: 1px solid #000; padding: 10px; background: #27ae60; color: white;">الكمية</th>
+                        <th style="border: 1px solid #000; padding: 10px; background: #27ae60; color: white;">الإيرادات</th>
+                    </tr>
+                </thead>
+                <tbody id="printTopProductsBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0; padding: 20px; background: white;">
+            <p style="font-size: 14px; color: #666;">
+                تقرير مبيعات - سوبر ماركت
+            </p>
+        </div>
+    </div>
+    
+    <!-- منطقة الطباعة لتقرير المخزون -->
+    <div id="printStockArea" style="display: none;">
+        <div style="text-align: center; padding: 20px; background: white;">
+            <h1 style="color: #667eea; margin-bottom: 10px;">📦 تقرير المخزون</h1>
+            <p style="font-size: 16px; color: #666;">
+                تاريخ الطباعة: <span id="printStockDate"></span>
+            </p>
+        </div>
+        
+        <div style="margin: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; background: white;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        <strong>إجمالي المنتجات:</strong>
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">
+                        <span id="printStockTotalProducts" style="font-size: 18px; font-weight: bold;">0</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        <strong>إجمالي الكمية:</strong>
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">
+                        <span id="printStockTotalQuantity" style="color: #667eea; font-size: 18px; font-weight: bold;">0</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        <strong>منخفض المخزون:</strong>
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">
+                        <span id="printStockLowStock" style="color: #f39c12; font-size: 18px; font-weight: bold;">0</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        <strong>نفذ المخزون:</strong>
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">
+                        <span id="printStockOutOfStock" style="color: #e74c3c; font-size: 18px; font-weight: bold;">0</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="margin: 20px; background: white;">
+            <h3 style="margin-bottom: 15px; color: #f39c12;">⚠️ المنتجات منخفضة المخزون</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #000; padding: 10px; background: #f39c12; color: white;">المنتج</th>
+                        <th style="border: 1px solid #000; padding: 10px; background: #f39c12; color: white;">الكمية</th>
+                        <th style="border: 1px solid #000; padding: 10px; background: #f39c12; color: white;">الحد الأدنى</th>
+                        <th style="border: 1px solid #000; padding: 10px; background: #f39c12; color: white;">التصنيف</th>
+                    </tr>
+                </thead>
+                <tbody id="printLowStockBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin: 20px; background: white;">
+            <h3 style="margin-bottom: 15px; color: #e74c3c;">❌ المنتجات التي نفذت</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #000; padding: 10px; background: #e74c3c; color: white;">المنتج</th>
+                        <th style="border: 1px solid #000; padding: 10px; background: #e74c3c; color: white;">التصنيف</th>
+                    </tr>
+                </thead>
+                <tbody id="printOutOfStockBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0; padding: 20px; background: white;">
+            <p style="font-size: 14px; color: #666;">
+                تقرير مخزون - سوبر ماركت
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        let currentReportData = null;
+        let currentReportType = 'sales';
+        
+        // التبديل بين التبويبات
+        function switchTab(tabName) {
+            // إخفاء جميع التبويبات
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // إزالة active من جميع الأزرار
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // إظهار التبويب المحدد
+            document.getElementById(tabName).classList.add('active');
+            
+            // إضافة active للزر المضغوط
+            event.target.classList.add('active');
+            
+            currentReportType = tabName;
+            
+            // إذا كان تقرير المخزون، قم بتحميله
+            if (tabName === 'stock') {
+                loadStockReport();
+            }
+        }
+        
+        // تحديث حقول التاريخ حسب نوع التقرير
+        function updateDateFields() {
+            const reportType = document.getElementById('reportType').value;
+            const startDateGroup = document.getElementById('startDateGroup');
+            const endDateGroup = document.getElementById('endDateGroup');
+            
+            if (reportType === 'custom') {
+                startDateGroup.style.display = 'block';
+                endDateGroup.style.display = 'block';
+                
+                // ضبط التواريخ الافتراضية
+                const today = new Date().toISOString().split('T')[0];
+                const monthAgo = new Date();
+                monthAgo.setDate(monthAgo.getDate() - 30);
+                document.getElementById('startDate').value = monthAgo.toISOString().split('T')[0];
+                document.getElementById('endDate').value = today;
+            } else {
+                startDateGroup.style.display = 'none';
+                endDateGroup.style.display = 'none';
+            }
+        }
+        
+        // توليد تقرير المبيعات
+        function generateSalesReport() {
+            const reportType = document.getElementById('reportType').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            const reportData = { type: reportType };
+            
+            if (reportType === 'custom') {
+                if (!startDate || !endDate) {
+                    showMessage('يرجى تحديد الفترة الزمنية', 'error');
+                    return;
+                }
+                reportData.start_date = startDate;
+                reportData.end_date = endDate;
+            }
+            
+            fetch('/api/reports/sales', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(reportData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentReportData = data;
+                    displaySalesReport(data);
+                }
+            });
+        }
+        
+        // عرض تقرير المبيعات
+        function displaySalesReport(data) {
+            // تحديث الإحصائيات
+            document.getElementById('totalSales').textContent = data.statistics.total_sales.toFixed(2);
+            document.getElementById('totalInvoices').textContent = data.statistics.total_invoices;
+            
+            const avg = data.statistics.total_invoices > 0 
+                ? (data.statistics.total_sales / data.statistics.total_invoices).toFixed(2)
+                : '0.00';
+            document.getElementById('avgInvoice').textContent = avg;
+            
+            // عرض الفواتير
+            const invoicesBody = document.getElementById('invoicesBody');
+            invoicesBody.innerHTML = '';
+            
+            if (data.invoices.length === 0) {
+                invoicesBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px;">
+                            لا يوجد فواتير في هذه الفترة
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            data.invoices.forEach(invoice => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${invoice.invoice_number}</strong></td>
+                    <td>${invoice.total.toFixed(2)} جنيه</td>
+                    <td>${invoice.payment_method}</td>
+                    <td>${invoice.cashier}</td>
+                    <td>${new Date(invoice.date).toLocaleDateString('ar-EG')}</td>
+                `;
+                invoicesBody.appendChild(row);
+            });
+            
+            // عرض المنتجات الأعلى مبيعاً
+            const topProductsBody = document.getElementById('topProductsBody');
+            topProductsBody.innerHTML = '';
+            
+            if (data.top_products.length === 0) {
+                topProductsBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 40px;">
+                            لا يوجد بيانات
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            data.top_products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${product.name}</strong></td>
+                    <td>${product.quantity}</td>
+                    <td>${product.sales.toFixed(2)} جنيه</td>
+                `;
+                topProductsBody.appendChild(row);
+            });
+        }
+        
+        // طباعة تقرير المبيعات
+        function printSalesReport() {
+            if (!currentReportData) {
+                showMessage('يرجى عرض التقرير أولاً', 'error');
+                return;
+            }
+            
+            const reportType = document.getElementById('reportType').value;
+            let periodText = '';
+            
+            if (reportType === 'daily') {
+                periodText = 'يومي - ' + new Date().toLocaleDateString('ar-EG');
+            } else if (reportType === 'weekly') {
+                periodText = 'أسبوعي';
+            } else if (reportType === 'monthly') {
+                periodText = 'شهري';
+            } else {
+                periodText = 'مخصص من ' + 
+                    document.getElementById('startDate').value + 
+                    ' إلى ' + 
+                    document.getElementById('endDate').value;
+            }
+            
+            // تحديث بيانات الطباعة
+            document.getElementById('printSalesDate').textContent = new Date().toLocaleDateString('ar-EG');
+            document.getElementById('printSalesPeriod').textContent = periodText;
+            document.getElementById('printSalesTotal').textContent = currentReportData.statistics.total_sales.toFixed(2);
+            document.getElementById('printSalesCount').textContent = currentReportData.statistics.total_invoices;
+            
+            const avg = currentReportData.statistics.total_invoices > 0 
+                ? (currentReportData.statistics.total_sales / currentReportData.statistics.total_invoices).toFixed(2)
+                : '0.00';
+            document.getElementById('printSalesAvg').textContent = avg;
+            
+            // ملء جدول الفواتير
+            const printBody = document.getElementById('printSalesTableBody');
+            printBody.innerHTML = '';
+            
+            currentReportData.invoices.forEach(invoice => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="border: 1px solid #000; padding: 8px;">${invoice.invoice_number}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${invoice.total.toFixed(2)}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${invoice.payment_method}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${invoice.cashier}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${new Date(invoice.date).toLocaleDateString('ar-EG')}</td>
+                `;
+                printBody.appendChild(row);
+            });
+            
+            // ملء جدول المنتجات الأعلى مبيعاً
+            const printTopProducts = document.getElementById('printTopProductsBody');
+            printTopProducts.innerHTML = '';
+            
+            currentReportData.top_products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="border: 1px solid #000; padding: 8px;">${product.name}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${product.quantity}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${product.sales.toFixed(2)}</td>
+                `;
+                printTopProducts.appendChild(row);
+            });
+            
+            // إخفاء كل شيء وإظهار منطقة الطباعة فقط
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('printStockArea').style.display = 'none';
+            document.getElementById('printSalesArea').style.display = 'block';
+            
+            // طباعة الصفحة
+            window.print();
+            
+            // إعادة إظهار الواجهة
+            document.querySelector('.container').style.display = 'block';
+            document.getElementById('printSalesArea').style.display = 'none';
+        }
+        
+        // تحميل تقرير المخزون
+        function loadStockReport() {
+            fetch('/api/reports/stock')
+                .then(response => response.json())
+                .then(data => {
+                    // تحديث الإحصائيات
+                    document.getElementById('stockTotalProducts').textContent = data.summary.total_products;
+                    document.getElementById('stockTotalQuantity').textContent = data.summary.total_quantity;
+                    document.getElementById('stockLowStock').textContent = data.summary.low_stock_count;
+                    document.getElementById('stockOutOfStock').textContent = data.summary.out_of_stock_count;
+                    
+                    // عرض المنتجات منخفضة المخزون
+                    const lowStockBody = document.getElementById('lowStockBody');
+                    lowStockBody.innerHTML = '';
+                    
+                    if (data.low_stock.length === 0) {
+                        lowStockBody.innerHTML = `
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 40px;">
+                                    لا يوجد منتجات منخفضة المخزون
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        data.low_stock.forEach(product => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td><strong>${product.name}</strong></td>
+                                <td style="color: #e74c3c; font-weight: bold;">${product.quantity}</td>
+                                <td>${product.min_stock}</td>
+                                <td>${product.category || '-'}</td>
+                            `;
+                            lowStockBody.appendChild(row);
+                        });
+                    }
+                    
+                    // عرض المنتجات التي نفذت
+                    const outOfStockBody = document.getElementById('outOfStockBody');
+                    outOfStockBody.innerHTML = '';
+                    
+                    if (data.out_of_stock.length === 0) {
+                        outOfStockBody.innerHTML = `
+                            <tr>
+                                <td colspan="2" style="text-align: center; padding: 40px;">
+                                    لا يوجد منتجات نفذت من المخزون
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        data.out_of_stock.forEach(product => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td><strong>${product.name}</strong></td>
+                                <td>${product.category || '-'}</td>
+                            `;
+                            outOfStockBody.appendChild(row);
+                        });
+                    }
+                });
+        }
+        
+        // طباعة تقرير المخزون
+        function printStockReport() {
+            // تحديث بيانات الطباعة
+            document.getElementById('printStockDate').textContent = new Date().toLocaleDateString('ar-EG');
+            document.getElementById('printStockTotalProducts').textContent = document.getElementById('stockTotalProducts').textContent;
+            document.getElementById('printStockTotalQuantity').textContent = document.getElementById('stockTotalQuantity').textContent;
+            document.getElementById('printStockLowStock').textContent = document.getElementById('stockLowStock').textContent;
+            document.getElementById('printStockOutOfStock').textContent = document.getElementById('stockOutOfStock').textContent;
+            
+            // ملء جدول المنتجات منخفضة المخزون
+            const printLowStock = document.getElementById('printLowStockBody');
+            printLowStock.innerHTML = '';
+            
+            const lowStockRows = document.querySelectorAll('#lowStockBody tr');
+            
+            lowStockRows.forEach(row => {
+                if (row.cells.length >= 4) {
+                    const printRow = document.createElement('tr');
+                    printRow.innerHTML = `
+                        <td style="border: 1px solid #000; padding: 8px;">${row.cells[0].textContent}</td>
+                        <td style="border: 1px solid #000; padding: 8px; color: #e74c3c; font-weight: bold;">${row.cells[1].textContent}</td>
+                        <td style="border: 1px solid #000; padding: 8px;">${row.cells[2].textContent}</td>
+                        <td style="border: 1px solid #000; padding: 8px;">${row.cells[3].textContent}</td>
+                    `;
+                    printLowStock.appendChild(printRow);
+                }
+            });
+            
+            // ملء جدول المنتجات التي نفذت
+            const printOutOfStock = document.getElementById('printOutOfStockBody');
+            printOutOfStock.innerHTML = '';
+            
+            const outOfStockRows = document.querySelectorAll('#outOfStockBody tr');
+            
+            outOfStockRows.forEach(row => {
+                if (row.cells.length >= 2) {
+                    const printRow = document.createElement('tr');
+                    printRow.innerHTML = `
+                        <td style="border: 1px solid #000; padding: 8px;">${row.cells[0].textContent}</td>
+                        <td style="border: 1px solid #000; padding: 8px;">${row.cells[1].textContent}</td>
+                    `;
+                    printOutOfStock.appendChild(printRow);
+                }
+            });
+            
+            // إخفاء كل شيء وإظهار منطقة الطباعة فقط
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('printSalesArea').style.display = 'none';
+            document.getElementById('printStockArea').style.display = 'block';
+            
+            // طباعة الصفحة
+            window.print();
+            
+            // إعادة إظهار الواجهة
+            document.querySelector('.container').style.display = 'block';
+            document.getElementById('printStockArea').style.display = 'none';
+        }
+        
+        // عرض رسالة
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            
+            setTimeout(() => {
+                messageDiv.className = '';
+                messageDiv.textContent = '';
+            }, 3000);
+        }
+        
+        // تحميل تقرير المخزون عند الفتح
+        window.onload = function() {
+            loadStockReport();
+        };
+    </script>
+</body>
+</html>
